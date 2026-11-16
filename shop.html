@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Real Dream — Shop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#16181d; --mut:#6c717c; --line:#e7e8ec; --bg:#ffffff; --soft:#f5f5f7;
+  --red:#d9202f; --red-d:#b51926; --ok:#12805c; --warn:#b45309;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{--ink:#f2f3f5; --mut:#9aa0ab; --line:#2a2d35; --bg:#101216; --soft:#181b21; --red:#ef3f4d; --red-d:#d9202f; color-scheme:dark}
+}
+*{box-sizing:border-box;margin:0}
+html{scroll-padding-top:70px}
+body{font-family:'Hind Siliguri',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
+h1,h2,h3,.brand,.price{font-family:'Bricolage Grotesque','Hind Siliguri',sans-serif}
+button{font:inherit;cursor:pointer;color:inherit}
+input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+
+/* top bar */
+.top{position:sticky;top:0;z-index:30;background:var(--bg);border-bottom:1px solid var(--line)}
+.top-in{max-width:1180px;margin:0 auto;padding:12px 18px;display:flex;align-items:center;gap:14px}
+.brand{font-size:1.35rem;font-weight:800;letter-spacing:-.03em;white-space:nowrap}
+.brand i{font-style:normal;color:var(--red)}
+.search{flex:1;min-width:0;max-width:420px;margin-left:auto}
+.search input{width:100%;padding:9px 14px;border:1px solid var(--line);border-radius:999px;background:var(--soft)}
+.cart-btn{position:relative;border:1px solid var(--ink);background:var(--ink);color:var(--bg);border-radius:999px;padding:8px 16px;font-weight:600;white-space:nowrap}
+.cart-btn b{display:inline-block;min-width:20px;margin-left:6px;padding:0 6px;border-radius:999px;background:var(--red);color:#fff;font-size:.8rem}
+
+/* hero */
+.hero{max-width:1180px;margin:0 auto;padding:44px 18px 18px}
+.hero h1{font-size:clamp(2.2rem,6.5vw,4.6rem);line-height:.98;letter-spacing:-.045em;font-weight:800;max-width:11ch}
+.hero p{margin-top:14px;color:var(--mut);max-width:46ch}
+
+/* chips */
+.chips{max-width:1180px;margin:0 auto;padding:10px 18px;display:flex;gap:8px;overflow-x:auto}
+.chip{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:6px 15px;white-space:nowrap;font-weight:500}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+/* grid */
+.grid{max-width:1180px;margin:0 auto;padding:14px 18px 70px;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:22px 16px}
+.card{text-align:left;background:none;border:0;padding:0}
+.ph{aspect-ratio:4/5;border-radius:6px;background:var(--soft);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.ph img{width:100%;height:100%;object-fit:cover}
+.ph .ltr{font-family:'Bricolage Grotesque';font-weight:800;font-size:4.2rem;letter-spacing:-.05em;opacity:.9}
+.tag{position:absolute;left:8px;top:8px;background:var(--bg);border-radius:999px;padding:2px 10px;font-size:.78rem;font-weight:600}
+.tag.low{color:var(--warn)} .tag.out{color:var(--red)}
+.card:hover .ph{box-shadow:0 0 0 2px var(--ink)}
+.card h3{margin-top:9px;font-size:1rem;font-weight:700;letter-spacing:-.01em;line-height:1.25}
+.card .sub{color:var(--mut);font-size:.85rem}
+.price{font-weight:700;margin-top:2px}
+.empty{grid-column:1/-1;text-align:center;color:var(--mut);padding:60px 0}
+
+/* panels */
+.scrim{position:fixed;inset:0;background:rgba(10,12,16,.55);z-index:40;display:none}
+.scrim.on{display:block}
+.panel{position:fixed;z-index:50;background:var(--bg);display:none;overflow:auto}
+.panel.on{display:block}
+#pm{left:50%;top:50%;transform:translate(-50%,-50%);width:min(860px,94vw);max-height:92vh;border-radius:10px}
+.pm-g{display:grid;grid-template-columns:1fr 1fr}
+.pm-g .ph{border-radius:10px 0 0 10px;height:100%;aspect-ratio:auto;min-height:340px}
+.pm-b{padding:26px}
+.pm-b h2{font-size:1.6rem;letter-spacing:-.03em;line-height:1.1}
+.x{position:absolute;right:12px;top:12px;border:0;background:var(--bg);border-radius:50%;width:34px;height:34px;font-size:1.1rem;z-index:2}
+.sz{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 4px}
+.sz button{min-width:58px;padding:8px 10px;border:1px solid var(--line);background:var(--bg);border-radius:8px;text-align:center;line-height:1.15}
+.sz button small{display:block;font-size:.72rem;color:var(--mut)}
+.sz button[aria-pressed=true]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.sz button:disabled{opacity:.4;cursor:not-allowed;text-decoration:line-through}
+.qty{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:8px}
+.qty button{width:34px;height:36px;border:0;background:none;font-size:1.1rem}
+.qty span{min-width:32px;text-align:center;font-weight:600}
+.btn{border:0;background:var(--red);color:#fff;border-radius:8px;padding:12px 20px;font-weight:600;width:100%}
+.btn:hover{background:var(--red-d)} .btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.alt{background:var(--soft);color:var(--ink)}
+.lbl{font-size:.85rem;font-weight:600;margin-top:14px;display:block}
+.hint{font-size:.82rem;color:var(--mut)}
+
+#cart{right:0;top:0;bottom:0;width:min(440px,100vw);display:none;flex-direction:column}
+#cart.on{display:flex}
+.c-h{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.c-h h2{font-size:1.25rem}
+.c-b{flex:1;overflow:auto;padding:6px 18px}
+.c-f{padding:14px 18px;border-top:1px solid var(--line)}
+.ln{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.ln .th{width:58px;height:72px;border-radius:5px;background:var(--soft);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:800}
+.ln .th img{width:100%;height:100%;object-fit:cover}
+.ln .in{flex:1;min-width:0}
+.ln .in b{display:block;line-height:1.25}
+.rm{border:0;background:none;color:var(--mut);font-size:.82rem;text-decoration:underline;padding:0}
+.row{display:flex;justify-content:space-between;gap:10px;padding:3px 0}
+.row.t{font-weight:700;font-size:1.1rem;border-top:1px solid var(--line);margin-top:6px;padding-top:9px}
+.f input:not([type=radio]),.f select,.f textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);margin-top:4px}
+.f textarea{resize:vertical;min-height:64px}
+.opt{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:8px;margin-top:8px;cursor:pointer}
+.opt:has(input:checked){border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.opt input{margin-top:5px}
+.err{background:#fdecee;color:#9b1522;border-radius:8px;padding:9px 12px;margin-top:10px;font-size:.9rem}
+@media (prefers-color-scheme:dark){.err{background:#3a1519;color:#ffb3ba}}
+.done{padding:40px 24px;text-align:center}
+.done h2{font-size:1.6rem;margin:10px 0}
+.done code{display:inline-block;margin:8px 0;padding:6px 14px;border-radius:8px;background:var(--soft);font-weight:700;font-size:1.1rem}
+footer{border-top:1px solid var(--line);padding:26px 18px;text-align:center;color:var(--mut);font-size:.9rem}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;z-index:80;display:none;font-weight:500}
+
+@media(max-width:720px){
+  .pm-g{grid-template-columns:1fr}
+  .pm-g .ph{border-radius:10px 10px 0 0;min-height:0;aspect-ratio:1/1;height:auto}
+  #pm{top:auto;bottom:0;left:0;transform:none;width:100%;border-radius:14px 14px 0 0;max-height:92vh}
+  .grid{grid-template-columns:repeat(2,1fr);gap:18px 10px}
+  .search{max-width:none}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top"><div class="top-in">
+  <a class="brand" href="#" id="brand-name">Real <i>Dream</i></a>
+  <div class="search"><input id="q" type="search" placeholder="Search garments" aria-label="Search garments"></div>
+  <button class="cart-btn" id="open-cart" type="button">Cart<b id="cart-n">0</b></button>
+</div></header>
+
+<section class="hero">
+  <h1>Dress for the day you’re having.</h1>
+  <p>Shirts, panjabis, jeans and more. Pick your size, order online, and pay when it arrives.</p>
+</section>
+
+<nav class="chips" id="chips" aria-label="Categories"></nav>
+<main class="grid" id="grid" aria-live="polite"></main>
+<footer id="foot"></footer>
+
+<div class="scrim" id="scrim"></div>
+<section class="panel" id="pm" role="dialog" aria-modal="true" aria-label="Product"></section>
+<aside class="panel" id="cart" role="dialog" aria-modal="true" aria-label="Cart"></aside>
+<div id="toast" role="status"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getFirestore, collection, doc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+/* ===================== SETTINGS: edit these ===================== */
+const SHOP = {
+  name: "Real Dream",
+  phone: "01XXXXXXXXX",            // shop phone (shown in footer)
+  bkashNumber: "01XXXXXXXXX",      // your bKash personal/merchant number
+  deliveryInside: 60,              // inside Dhaka
+  deliveryOutside: 120,            // outside Dhaka
+  freeDeliveryOver: 3000,          // 0 = never free
+  currency: "৳"
+};
+const firebaseConfig = {
+  apiKey: "AIzaSyD2kP9fB5diHic_iISdkETrhvtMKpvmWcI",
+  authDomain: "real-dream-pos.firebaseapp.com",
+  projectId: "real-dream-pos",
+  storageBucket: "real-dream-pos.firebasestorage.app",
+  messagingSenderId: "819955130750",
+  appId: "1:819955130750:web:7c071120d1bef82c24d32f"
+};
+/* ================================================================ */
+
+const COL_SHOP = "clothpos_shop";       // public catalog mirrored by the POS (no cost prices)
+const COL_ORD  = "clothpos_orders";     // orders go here; the POS picks them up
+
+const db = getFirestore(initializeApp(firebaseConfig));
+const $ = (id) => document.getElementById(id);
+const num = (v) => Number(v) || 0;
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const money = (n) => SHOP.currency + " " + Math.round(num(n)).toLocaleString("en-US");
+
+let products = [], loaded = false, cat = "All", query = "";
+let cart = []; try { cart = JSON.parse(localStorage.getItem("rd_cart") || "[]"); } catch (e) {}
+const saveCart = () => { try { localStorage.setItem("rd_cart", JSON.stringify(cart)); } catch (e) {} };
+const stockOf = (p) => (p.variants || []).reduce((a, v) => a + num(v.stock), 0);
+const byId = (id) => products.find(p => String(p.id) === String(id));
+const variant = (p, size) => p && (p.variants || []).find(v => String(v.size) === String(size));
+
+/* ---------- live catalog ---------- */
+onSnapshot(collection(db, COL_SHOP), (snap) => {
+  products = snap.docs.map(d => d.data()).filter(p => p && p.name);
+  products.sort((a, b) => (stockOf(b) > 0) - (stockOf(a) > 0) || String(a.name).localeCompare(String(b.name)));
+  loaded = true; render(); renderCart(); refreshModal();
+}, () => { loaded = true; $("grid").innerHTML = '<div class="empty">The shop could not load. Please refresh in a moment.</div>'; });
+
+/* ---------- catalog ---------- */
+function thumb(p) {
+  return p.image ? `<img src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy">`
+                 : `<span class="ltr" aria-hidden="true">${esc(String(p.name).trim()[0] || "•")}</span>`;
+}
+function render() {
+  const cats = ["All", ...new Set(products.map(p => p.category).filter(Boolean))];
+  if (!cats.includes(cat)) cat = "All";
+  $("chips").innerHTML = cats.map(c => `<button class="chip" type="button" data-cat="${esc(c)}" aria-pressed="${c === cat}">${esc(c)}</button>`).join("");
+  const q = query.toLowerCase().trim();
+  const list = products.filter(p => (cat === "All" || p.category === cat) &&
+    (!q || [p.name, p.category, p.color, p.brand].some(x => String(x || "").toLowerCase().includes(q))));
+  if (!loaded) { $("grid").innerHTML = '<div class="empty">Loading…</div>'; return; }
+  $("grid").innerHTML = list.length ? list.map(p => {
+    const s = stockOf(p);
+    const t = s <= 0 ? '<span class="tag out">Sold out</span>' : s < 4 ? `<span class="tag low">Only ${s} left</span>` : "";
+    return `<button class="card" type="button" data-id="${esc(p.id)}"><div class="ph">${thumb(p)}${t}</div>
+      <h3>${esc(p.name)}</h3><div class="sub">${esc(p.category || "")}${p.color ? " · " + esc(p.color) : ""}</div>
+      <div class="price">${money(p.sellPrice)}</div></button>`;
+  }).join("") : `<div class="empty">${products.length ? "Nothing matches your search." : "No products yet. Please check back soon."}</div>`;
+}
+$("chips").addEventListener("click", (e) => { const b = e.target.closest("[data-cat]"); if (b) { cat = b.dataset.cat; render(); } });
+$("q").addEventListener("input", (e) => { query = e.target.value; render(); });
+$("grid").addEventListener("click", (e) => { const c = e.target.closest("[data-id]"); if (c) openProduct(c.dataset.id); });
+
+/* ---------- panels ---------- */
+let pmState = null;
+function showPanel(id) { $("scrim").classList.add("on"); $(id).classList.add("on"); document.body.style.overflow = "hidden"; }
+function closeAll() { ["pm", "cart"].forEach(i => $(i).classList.remove("on")); $("scrim").classList.remove("on"); document.body.style.overflow = ""; pmState = null; }
+$("scrim").addEventListener("click", closeAll);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeAll(); });
+
+function openProduct(id) {
+  const p = byId(id); if (!p) return;
+  const first = (p.variants || []).find(v => num(v.stock) > 0);
+  pmState = { id: String(p.id), size: first ? first.size : null, qty: 1 };
+  refreshModal(); showPanel("pm");
+}
+function refreshModal() {
+  if (!pmState) return;
+  const p = byId(pmState.id); if (!p) { closeAll(); return; }
+  let v = variant(p, pmState.size);
+  if (!v || num(v.stock) <= 0) { const f = (p.variants || []).find(x => num(x.stock) > 0); pmState.size = f ? f.size : null; v = f; }
+  const max = v ? num(v.stock) : 0;
+  pmState.qty = Math.max(1, Math.min(pmState.qty, Math.max(1, max)));
+  $("pm").innerHTML = `<button class="x" type="button" data-a="close" aria-label="Close">✕</button>
+  <div class="pm-g"><div class="ph">${thumb(p)}</div><div class="pm-b">
+    <div class="hint">${esc(p.category || "")}${p.color ? " · " + esc(p.color) : ""}</div>
+    <h2>${esc(p.name)}</h2><div class="price" style="font-size:1.4rem;margin-top:6px">${money(p.sellPrice)}</div>
+    <span class="lbl">Size</span>
+    <div class="sz">${(p.variants || []).map(x => {
+      const n = num(x.stock);
+      return `<button type="button" data-size="${esc(x.size)}" aria-pressed="${String(x.size) === String(pmState.size)}" ${n <= 0 ? "disabled" : ""}>${esc(x.size)}<small>${n <= 0 ? "sold out" : n < 4 ? n + " left" : "in stock"}</small></button>`;
+    }).join("")}</div>
+    <span class="lbl">Quantity</span>
+    <div class="qty"><button type="button" data-a="dec" aria-label="Decrease">−</button><span>${pmState.qty}</span><button type="button" data-a="inc" aria-label="Increase">+</button></div>
+    <div style="margin-top:20px"><button class="btn" type="button" data-a="add" ${max <= 0 ? "disabled" : ""}>${max <= 0 ? "Sold out" : "Add to cart"}</button></div>
+    <p class="hint" style="margin-top:10px">Cash on delivery available. Exchange within 7 days.</p>
+  </div></div>`;
+}
+$("pm").addEventListener("click", (e) => {
+  const sz = e.target.closest("[data-size]"); if (sz && pmState) { pmState.size = sz.dataset.size; pmState.qty = 1; refreshModal(); return; }
+  const a = e.target.closest("[data-a]"); if (!a || !pmState) return;
+  const p = byId(pmState.id), v = variant(p, pmState.size), max = v ? num(v.stock) : 0;
+  if (a.dataset.a === "close") closeAll();
+  if (a.dataset.a === "inc") { pmState.qty = Math.min(max, pmState.qty + 1); refreshModal(); }
+  if (a.dataset.a === "dec") { pmState.qty = Math.max(1, pmState.qty - 1); refreshModal(); }
+  if (a.dataset.a === "add") {
+    if (!v || max <= 0) return;
+    const line = cart.find(l => l.pid === pmState.id && String(l.size) === String(pmState.size));
+    const want = (line ? line.qty : 0) + pmState.qty;
+    if (want > max) { toast("Only " + max + " in stock for this size"); return; }
+    if (line) line.qty = want; else cart.push({ pid: pmState.id, size: pmState.size, qty: pmState.qty });
+    saveCart(); closeAll(); updateBadge(); toast("Added to cart");
+  }
+});
+
+/* ---------- cart ---------- */
+function updateBadge() { $("cart-n").textContent = cart.reduce((a, l) => a + l.qty, 0); }
+function resolved() {
+  // drop lines whose product/size vanished, clamp to live stock
+  return cart.map(l => {
+    const p = byId(l.pid), v = variant(p, l.size);
+    return p && v ? { ...l, p, v, ok: num(v.stock) >= l.qty, max: num(v.stock) } : null;
+  }).filter(Boolean);
+}
+function deliveryFor(sub, zone) {
+  if (SHOP.freeDeliveryOver && sub >= SHOP.freeDeliveryOver) return 0;
+  return zone === "outside" ? SHOP.deliveryOutside : SHOP.deliveryInside;
+}
+let step = "cart", zone = "inside", err = "";
+function renderCart() {
+  updateBadge();
+  const el = $("cart"); if (!el.classList.contains("on") && step !== "done") return;
+  const L = resolved(), sub = L.reduce((a, l) => a + num(l.p.sellPrice) * l.qty, 0);
+  const head = (t) => `<div class="c-h"><h2>${t}</h2><button class="rm" type="button" data-a="close" style="font-size:1rem">Close</button></div>`;
+  if (step === "done") return;
+  if (!L.length) { el.innerHTML = head("Your cart") + '<div class="c-b"><div class="empty">Your cart is empty.</div></div>'; return; }
+  if (step === "cart") {
+    el.innerHTML = head("Your cart") + `<div class="c-b">${L.map((l, i) => `<div class="ln"><div class="th">${l.p.image ? `<img src="${esc(l.p.image)}" alt="">` : esc(String(l.p.name)[0])}</div>
+      <div class="in"><b>${esc(l.p.name)}</b><span class="hint">Size ${esc(l.size)} · ${money(l.p.sellPrice)}</span>
+      ${l.ok ? "" : `<div style="color:var(--red);font-size:.82rem">Only ${l.max} left in this size</div>`}
+      <div style="display:flex;align-items:center;gap:12px;margin-top:6px"><div class="qty"><button type="button" data-a="cdec" data-i="${i}" aria-label="Decrease">−</button><span>${l.qty}</span><button type="button" data-a="cinc" data-i="${i}" aria-label="Increase">+</button></div>
+      <button class="rm" type="button" data-a="crm" data-i="${i}">Remove</button></div></div>
+      <b>${money(num(l.p.sellPrice) * l.qty)}</b></div>`).join("")}</div>
+      <div class="c-f"><div class="row"><span>Subtotal</span><b>${money(sub)}</b></div><p class="hint">Delivery is added at checkout.</p>
+      <div style="margin-top:10px"><button class="btn" type="button" data-a="checkout" ${L.every(l => l.ok) ? "" : "disabled"}>Checkout</button></div></div>`;
+  } else {
+    const d = deliveryFor(sub, zone), total = sub + d;
+    const pay = (document.querySelector("input[name=pay]:checked") || {}).value || "cod";
+    el.innerHTML = head("Checkout") + `<form class="c-b f" id="co" novalidate>
+      <label class="lbl">Full name<input id="f-name" autocomplete="name" required></label>
+      <label class="lbl">Mobile number<input id="f-phone" inputmode="numeric" autocomplete="tel" placeholder="01XXXXXXXXX" required></label>
+      <label class="lbl">Delivery area<select id="f-zone"><option value="inside" ${zone === "inside" ? "selected" : ""}>Inside Dhaka (${money(SHOP.deliveryInside)})</option><option value="outside" ${zone === "outside" ? "selected" : ""}>Outside Dhaka (${money(SHOP.deliveryOutside)})</option></select></label>
+      <label class="lbl">Full address<textarea id="f-addr" autocomplete="street-address" required placeholder="House, road, area, district"></textarea></label>
+      <label class="lbl">Note (optional)<input id="f-note"></label>
+      <span class="lbl">Payment</span>
+      <label class="opt"><input type="radio" name="pay" value="cod" ${pay === "cod" ? "checked" : ""}><span><b>Cash on delivery</b><br><span class="hint">Pay when you receive the parcel.</span></span></label>
+      <label class="opt"><input type="radio" name="pay" value="bkash" ${pay === "bkash" ? "checked" : ""}><span><b>bKash</b><br><span class="hint">Send ${money(total)} to ${esc(SHOP.bkashNumber)}, then enter the transaction ID.</span></span></label>
+      <div id="trx" style="display:${pay === "bkash" ? "block" : "none"}"><label class="lbl">bKash transaction ID<input id="f-trx" autocapitalize="characters"></label></div>
+      <div class="err" id="err" style="display:${err ? "block" : "none"}">${esc(err)}</div>
+    </form>
+    <div class="c-f"><div class="row"><span>Subtotal</span><span>${money(sub)}</span></div>
+      <div class="row"><span>Delivery</span><span>${d ? money(d) : "Free"}</span></div>
+      <div class="row t"><span>Total</span><span>${money(total)}</span></div>
+      <div style="display:flex;gap:8px;margin-top:12px"><button class="btn alt" type="button" data-a="back" style="width:38%">Back</button><button class="btn" type="button" data-a="place" id="place">Place order</button></div></div>`;
+  }
+}
+$("open-cart").addEventListener("click", () => { step = "cart"; err = ""; renderCart(); showPanel("cart"); renderCart(); });
+$("cart").addEventListener("change", (e) => {
+  if (e.target.id === "f-zone") { zone = e.target.value; keepForm(); renderCart(); restoreForm(); }
+  if (e.target.name === "pay") { keepForm(); renderCart(); restoreForm(); }
+});
+let kept = {};
+function keepForm() { ["f-name", "f-phone", "f-addr", "f-note", "f-trx"].forEach(i => { if ($(i)) kept[i] = $(i).value; }); }
+function restoreForm() { Object.keys(kept).forEach(i => { if ($(i)) $(i).value = kept[i]; }); }
+
+$("cart").addEventListener("click", (e) => {
+  const a = e.target.closest("[data-a]"); if (!a) return;
+  const L = resolved(), i = Number(a.dataset.i), act = a.dataset.a;
+  const line = L[i] && cart.find(c => c.pid === L[i].pid && String(c.size) === String(L[i].size));
+  if (act === "close") closeAll();
+  else if (act === "cinc" && line) { if (line.qty < L[i].max) line.qty++; else toast("No more stock for this size"); saveCart(); renderCart(); }
+  else if (act === "cdec" && line) { line.qty = Math.max(1, line.qty - 1); saveCart(); renderCart(); }
+  else if (act === "crm" && line) { cart = cart.filter(c => c !== line); saveCart(); renderCart(); }
+  else if (act === "checkout") { step = "form"; err = ""; renderCart(); restoreForm(); }
+  else if (act === "back") { keepForm(); step = "cart"; renderCart(); }
+  else if (act === "place") placeOrder();
+  else if (act === "again") { closeAll(); step = "cart"; }
+});
+
+/* ---------- place order: reserve stock + create order in one transaction ---------- */
+let placing = false;
+async function placeOrder() {
+  if (placing) return;
+  keepForm();
+  const name = (kept["f-name"] || "").trim(), phone = (kept["f-phone"] || "").replace(/[\s-]/g, ""), addr = (kept["f-addr"] || "").trim();
+  const pay = (document.querySelector("input[name=pay]:checked") || {}).value || "cod", trx = (kept["f-trx"] || "").trim();
+  const fail = (m) => { err = m; renderCart(); restoreForm(); };
+  if (name.length < 2) return fail("Please enter your name.");
+  if (!/^01[3-9]\d{8}$/.test(phone)) return fail("Enter a valid 11-digit mobile number, like 01712345678.");
+  if (addr.length < 8) return fail("Please enter your full delivery address.");
+  if (pay === "bkash" && trx.length < 6) return fail("Enter the bKash transaction ID.");
+
+  const L = resolved();
+  if (!L.length || !L.every(l => l.ok)) return fail("Some items are no longer available. Go back and check your cart.");
+  const sub = L.reduce((a, l) => a + num(l.p.sellPrice) * l.qty, 0), d = deliveryFor(sub, zone);
+  const id = "ORD-" + Date.now().toString().slice(-8) + Math.floor(10 + Math.random() * 90);
+
+  placing = true; const btn = $("place"); btn.disabled = true; btn.textContent = "Placing order…";
+  try {
+    await runTransaction(db, async (tx) => {
+      const ids = [...new Set(L.map(l => String(l.p.id)))];
+      const snaps = await Promise.all(ids.map(pid => tx.get(doc(db, COL_SHOP, pid))));      // all reads first
+      const data = {}; snaps.forEach((s, k) => { if (!s.exists()) throw new Error("An item is no longer sold."); data[ids[k]] = s.data(); });
+      L.forEach(l => {
+        const v = (data[String(l.p.id)].variants || []).find(x => String(x.size) === String(l.size));
+        if (!v || num(v.stock) < l.qty) throw new Error(`${l.p.name} (size ${l.size}) just sold out. Only ${v ? num(v.stock) : 0} left.`);
+        v.stock = num(v.stock) - l.qty;
+      });
+      ids.forEach(pid => tx.update(doc(db, COL_SHOP, pid), { variants: data[pid].variants }));
+      tx.set(doc(db, COL_ORD, id), {
+        id, createdAt: new Date().toISOString(), status: "pending", applied: false, channel: "website",
+        customer: { name, phone, address: addr, zone, note: (kept["f-note"] || "").trim() },
+        payment: { method: pay, trxId: pay === "bkash" ? trx : "" },
+        items: L.map(l => ({ productId: String(l.p.id), name: l.p.name, category: l.p.category || "", color: l.p.color || "", size: String(l.size), price: num(l.p.sellPrice), qty: l.qty })),
+        subtotal: sub, delivery: d, total: sub + d
+      });
+    });
+    cart = []; saveCart(); kept = {}; step = "done"; err = "";
+    $("cart").innerHTML = `<div class="c-h"><h2>Order placed</h2><button class="rm" type="button" data-a="close">Close</button></div>
+      <div class="done"><div style="font-size:2.4rem">✓</div><h2>Thank you, ${esc(name.split(" ")[0])}!</h2>
+      <p>Your order number is</p><code>${esc(id)}</code>
+      <p class="hint" style="margin-top:8px">We will call ${esc(phone)} to confirm. Keep this number to track your order.</p>
+      <div style="margin-top:20px"><button class="btn" type="button" data-a="again">Continue shopping</button></div></div>`;
+    updateBadge();
+  } catch (ex) {
+    console.error(ex);
+    const m = String(ex && ex.message || "");
+    err = /sold out|no longer/.test(m) ? m : "We couldn’t place your order. Check your connection and try again.";
+    step = "form"; renderCart(); restoreForm();
+  } finally { placing = false; }
+}
+
+function toast(m) { const t = $("toast"); t.textContent = m; t.style.display = "block"; clearTimeout(toast.t); toast.t = setTimeout(() => t.style.display = "none", 2200); }
+
+document.title = SHOP.name + " — Shop";
+$("foot").innerHTML = `© ${new Date().getFullYear()} ${esc(SHOP.name)} · Call ${esc(SHOP.phone)}`;
+updateBadge(); render();
+</script>
+</body>
+</html>
