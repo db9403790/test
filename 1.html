@@ -1210,14 +1210,13 @@
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
 
   const firebaseConfig = {
-  apiKey: "AIzaSyAdAYyozUFupINNoISwL8nDj4jdUtOqxMc",
-  authDomain: "e-paper-test.firebaseapp.com",
-  databaseURL: "https://e-paper-test-default-rtdb.firebaseio.com",
-  projectId: "e-paper-test",
-  storageBucket: "e-paper-test.firebasestorage.app",
-  messagingSenderId: "46759552880",
-  appId: "1:46759552880:web:ca17326a8d496f05f391b5",
-  measurementId: "G-YVDVVD8TVM"
+  apiKey: "AIzaSyDgz4OwNcDlomNw3vPAH3kbiqPOEiACMQ4",
+  authDomain: "website-test-2e000.firebaseapp.com",
+  projectId: "website-test-2e000",
+  storageBucket: "website-test-2e000.firebasestorage.app",
+  messagingSenderId: "909113466045",
+  appId: "1:909113466045:web:39e4e94329e1195e352bd4",
+  measurementId: "G-VF2K2Y65GQ"
 };
 
   // Firestore collection / document নাম
@@ -11741,6 +11740,280 @@ Firestore ডাটাবেস অনলাইন=Cloud online
   move();
   setInterval(move, 800);   // bulk button abar add hole abar thik jaygay boshiye dey
 })();
+</script>
+<!-- ===== REAL DREAM: WEBSITE CONNECTION + ONLINE ORDERS PATCH =====
+     Paste this whole block at the VERY END of your POS file, right before </body>
+     (after the last patch). Nothing else needs to change. -->
+<style id="rdw-css">
+#rdw-modal{position:fixed;inset:0;z-index:125;background:rgba(15,23,42,.6);display:none;align-items:flex-start;justify-content:center;padding:12px;overflow:auto}
+.rdw-box{background:#fff;border-radius:14px;max-width:820px;width:100%;margin-top:3vh;padding:16px;box-shadow:0 20px 50px rgba(0,0,0,.3);font-size:13px;color:#111827}
+.rdw-hd{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid #eee}
+.rdw-hd h3{font-size:17px;font-weight:700}
+.rdw-b{padding:8px 13px;border-radius:9px;border:1px solid #d4d4d8;background:#fff;font-weight:700;font-size:12px;cursor:pointer}
+.rdw-b:hover{background:#f9fafb}.rdw-b.p{background:#e11d2e;border-color:#e11d2e;color:#fff}.rdw-b.g{background:#15803d;border-color:#15803d;color:#fff}.rdw-b.d{color:#dc2626;border-color:#fecaca;background:#fff5f5}
+.rdw-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}
+.rdw-tabs button{padding:7px 13px;border-radius:999px;border:1px solid #e5e7eb;background:#fff;font-weight:700;font-size:12px;cursor:pointer}
+.rdw-tabs button.on{background:#111827;color:#fff;border-color:#111827}
+.rdw-o{border:1px solid #e5e7eb;border-radius:12px;padding:12px;margin-top:10px}
+.rdw-o .top{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.rdw-o .id{font-weight:800;font-family:monospace}
+.rdw-o .mut{color:#6b7280;font-size:12px}
+.rdw-it{display:flex;justify-content:space-between;gap:8px;padding:2px 0}
+.rdw-s{display:inline-block;padding:1px 9px;border-radius:999px;font-size:11px;font-weight:700}
+.rdw-s.pending{background:#fef3c7;color:#92400e}.rdw-s.confirmed{background:#dbeafe;color:#1d4ed8}.rdw-s.delivered{background:#dcfce7;color:#15803d}.rdw-s.cancelled{background:#fee2e2;color:#b91c1c}
+.rdw-bar{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.rdw-em{text-align:center;color:#9ca3af;padding:36px 0}
+#rdw-badge{display:inline-block;min-width:18px;margin-left:6px;padding:0 6px;border-radius:999px;background:#e11d2e;color:#fff;font-size:11px;font-weight:700;text-align:center}
+#rdw-badge.zero{display:none}
+</style>
+
+<script type="module" id="rdw-js">
+import { getApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFirestore, doc, setDoc, deleteDoc, updateDoc, collection, onSnapshot, runTransaction, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+const $ = (id) => document.getElementById(id);
+const num = (v) => Number(v) || 0;
+const E = (s) => esc(s);
+const M = (n) => '৳ ' + Math.round(num(n)).toLocaleString('en-US');
+const toast = (m, t) => window.showToast && window.showToast(m, t || 'info');
+const canDo = () => typeof window.can !== 'function' || window.can('pos');
+
+const app = getApp(), db = getFirestore(app), auth = getAuth(app);
+const COL_SHOP = 'clothpos_shop', COL_ORD = 'clothpos_orders';
+let orders = [], tab = 'pending', unsub = null, firstSnap = true, applying = new Set();
+
+/* =========================================================
+   1) PUBLIC CATALOG MIRROR (no cost price, no SKU)
+   Every time the POS saves/deletes a product, the website copy follows.
+========================================================= */
+const clean = (o) => JSON.parse(JSON.stringify(o));
+function mirrorDoc(p) {
+  return clean({
+    id: String(p.id), name: p.name, category: p.category || '', color: p.color || '', brand: p.brand || '',
+    sellPrice: num(p.sellPrice), image: p.image || '',
+    variants: (p.variants || []).map(v => ({ size: String(v.size), stock: Math.max(0, num(v.stock)) }))
+  });
+}
+async function mirror(p) {
+  if (!auth.currentUser || !p) return;
+  try { await setDoc(doc(db, COL_SHOP, String(p.id)), mirrorDoc(p)); } catch (e) { console.warn('mirror', e); }
+}
+const prevSave = window.cloudSaveProduct;
+window.cloudSaveProduct = async function (p) { const r = prevSave ? await prevSave.apply(this, arguments) : undefined; mirror(p); return r; };
+const prevDel = window.cloudDeleteProduct;
+window.cloudDeleteProduct = async function (id) {
+  const r = prevDel ? await prevDel.apply(this, arguments) : undefined;
+  try { if (auth.currentUser) await deleteDoc(doc(db, COL_SHOP, String(id))); } catch (e) {}
+  return r;
+};
+
+window.syncAllToWebsite = async function () {
+  if (!products.length) return toast('No products to sync.', 'warning');
+  try {
+    for (let i = 0; i < products.length; i += 400) {
+      const b = writeBatch(db);
+      products.slice(i, i + 400).forEach(p => b.set(doc(db, COL_SHOP, String(p.id)), mirrorDoc(p)));
+      await b.commit();
+    }
+    toast('✅ ' + products.length + ' products synced to the website', 'success');
+  } catch (e) { toast('Sync failed: ' + (e.code || e.message) + '. Check Firestore rules for clothpos_shop.', 'error'); }
+};
+
+/* =========================================================
+   2) ORDERS LISTENER
+========================================================= */
+const cloudOnline = () => { const b = $('firebase-cloud-status'); return !!b && /emerald/.test(b.className); };
+
+onAuthStateChanged(auth, (u) => {
+  if (unsub) { unsub(); unsub = null; }
+  orders = []; firstSnap = true; badge();
+  if (!u) return;
+  unsub = onSnapshot(collection(db, COL_ORD), (snap) => {
+    const next = snap.docs.map(d => d.data()).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+    if (!firstSnap) {
+      const known = new Set(orders.map(o => o.id));
+      const fresh = next.filter(o => !known.has(o.id) && o.status === 'pending');
+      if (fresh.length) { try { playScanBeep(true); } catch (e) {} toast('🛒 New website order: ' + fresh[0].id, 'success'); }
+    }
+    firstSnap = false; orders = next; badge();
+    if (isOpen()) render();
+    applyPending();
+  }, () => {});
+});
+setInterval(applyPending, 4000);
+
+/* A website order already reduced the PUBLIC stock. Here we reduce the REAL POS stock once. */
+async function applyPending() {
+  if (!auth.currentUser || !cloudOnline() || !products.length) return;
+  for (const o of orders) {
+    if (o.applied === true || o.status === 'cancelled' || applying.has(o.id)) continue;
+    applying.add(o.id);
+    try {
+      const ref = doc(db, COL_ORD, o.id);
+      const won = await runTransaction(db, async (tx) => {           // only one open POS gets to apply it
+        const s = await tx.get(ref), d = s.data();
+        if (!d || d.applied || d.status === 'cancelled') return false;
+        tx.update(ref, { applied: true, appliedAt: new Date().toISOString() });
+        return true;
+      });
+      if (!won) continue;
+      const changed = new Set();
+      (o.items || []).forEach(i => {
+        const p = products.find(x => String(x.id) === String(i.productId));
+        const v = p && p.variants.find(x => String(x.size) === String(i.size));
+        if (v) { v.stock = Math.max(0, num(v.stock) - num(i.qty)); changed.add(p); }
+      });
+      saveProducts();
+      changed.forEach(p => window.cloudSaveProduct(p));
+    } catch (e) { console.warn('apply', e); }
+    finally { applying.delete(o.id); }
+  }
+}
+
+/* =========================================================
+   3) ORDER ACTIONS
+========================================================= */
+async function setStatus(o, status) {
+  await updateDoc(doc(db, COL_ORD, o.id), { status, [status + 'At']: new Date().toISOString() });
+}
+
+async function cancelOrder(o) {
+  if (!confirm('Cancel order ' + o.id + '?\nThe items go back into stock.')) return;
+  try {
+    const wasApplied = await runTransaction(db, async (tx) => {
+      const ref = doc(db, COL_ORD, o.id), s = await tx.get(ref), d = s.data();
+      if (!d || d.status === 'cancelled' || d.status === 'delivered') throw new Error('This order can no longer be cancelled.');
+      tx.update(ref, { status: 'cancelled', cancelledAt: new Date().toISOString() });
+      return !!d.applied;
+    });
+    const changed = new Set();
+    (o.items || []).forEach(i => {
+      const p = products.find(x => String(x.id) === String(i.productId));
+      const v = p && p.variants.find(x => String(x.size) === String(i.size));
+      if (p) changed.add(p);
+      if (v && wasApplied) v.stock = num(v.stock) + num(i.qty);      // give POS stock back
+    });
+    saveProducts();
+    changed.forEach(p => window.cloudSaveProduct(p));                // also resets the website stock from real stock
+    toast('Order cancelled and stock restored', 'success');
+  } catch (e) { toast(e.message || 'Could not cancel', 'error'); }
+}
+
+async function deliverOrder(o) {
+  if (!o.applied) return toast('Stock is still syncing. Try again in a few seconds.', 'warning');
+  if (!confirm('Mark ' + o.id + ' as delivered?\nIt will be added to your sales reports.')) return;
+  const saleId = 'ONL-' + String(o.id).replace(/\D/g, '');
+  if (sales.some(s => s.id === saleId)) return toast('Already recorded in sales.', 'info');
+  const items = (o.items || []).map(i => {
+    const p = products.find(x => String(x.id) === String(i.productId));
+    const v = p && p.variants.find(x => String(x.size) === String(i.size));
+    return { cartItemId: i.productId + '_' + i.size, productId: i.productId, name: i.name, category: i.category, size: i.size,
+      sku: v ? v.sku : '', color: i.color, price: num(i.price), buyPrice: p ? num(p.buyPrice) : 0, qty: num(i.qty) };
+  });
+  const cust = o.customer || {}, bk = o.payment && o.payment.method === 'bkash';
+  const sale = {
+    id: saleId, date: new Date().toISOString(), customerName: cust.name || 'Online customer', customerPhone: cust.phone || 'N/A',
+    paymentMethod: bk ? 'বিকাশ (bKash)' : 'ক্যাশ (Cash)', items,
+    subtotal: num(o.subtotal), discount: 0, tax: 0, grandTotal: num(o.subtotal), paidAmount: num(o.subtotal), changeAmount: 0,
+    cashier: 'website', channel: 'online', onlineOrderId: o.id, deliveryCharge: num(o.delivery)
+  };
+  try {
+    sales.unshift(sale); saveSales();
+    if (window.cloudSaveSale) window.cloudSaveSale(sale);
+    await updateDoc(doc(db, COL_ORD, o.id), { status: 'delivered', deliveredAt: new Date().toISOString(), saleId });
+    toast('✅ Delivered and added to sales', 'success');
+  } catch (e) { toast('Failed: ' + (e.code || e.message), 'error'); }
+}
+
+/* =========================================================
+   4) ORDERS WINDOW
+========================================================= */
+const isOpen = () => { const m = $('rdw-modal'); return m && m.style.display === 'flex'; };
+const counts = () => { const c = { pending: 0, confirmed: 0, delivered: 0, cancelled: 0 }; orders.forEach(o => { if (c[o.status] != null) c[o.status]++; }); return c; };
+function badge() {
+  const n = counts().pending;
+  document.querySelectorAll('.rdw-badge').forEach(b => { b.textContent = n; b.classList.toggle('zero', !n); });
+}
+
+function build() {
+  if ($('rdw-modal')) return;
+  const m = document.createElement('div');
+  m.id = 'rdw-modal'; m.className = 'no-print';
+  m.innerHTML = '<div class="rdw-box"><div class="rdw-hd"><h3>Online Orders</h3><div style="display:flex;gap:6px;flex-wrap:wrap">' +
+    '<button type="button" class="rdw-b" id="rdw-sync">Sync all products to website</button><button type="button" class="rdw-b" id="rdw-x">Close</button></div></div>' +
+    '<div class="rdw-tabs" id="rdw-tabs"></div><div id="rdw-list"></div></div>';
+  document.body.appendChild(m);
+  m.addEventListener('mousedown', (e) => { if (e.target === m) closeWin(); });
+  $('rdw-x').onclick = closeWin;
+  $('rdw-sync').onclick = () => window.syncAllToWebsite();
+  $('rdw-tabs').addEventListener('click', (e) => { const b = e.target.closest('[data-t]'); if (b) { tab = b.dataset.t; render(); } });
+  $('rdw-list').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-act]'); if (!b) return;
+    const o = orders.find(x => x.id === b.dataset.id); if (!o) return;
+    const a = b.dataset.act;
+    if (a === 'confirm') setStatus(o, 'confirmed').then(() => toast('Order confirmed', 'success')).catch(() => toast('Failed', 'error'));
+    else if (a === 'deliver') deliverOrder(o);
+    else if (a === 'cancel') cancelOrder(o);
+    else if (a === 'memo' && o.saleId) { closeWin(); window.viewPastReceipt(o.saleId); }
+  });
+}
+function openWin() {
+  if (!canDo()) return toast('You do not have permission.', 'warning');
+  build(); $('rdw-modal').style.display = 'flex'; render();
+}
+function closeWin() { const m = $('rdw-modal'); if (m) m.style.display = 'none'; }
+window.openOnlineOrders = openWin;
+
+function render() {
+  const c = counts();
+  $('rdw-tabs').innerHTML = [['pending', 'New'], ['confirmed', 'Confirmed'], ['delivered', 'Delivered'], ['cancelled', 'Cancelled']]
+    .map(t => `<button type="button" data-t="${t[0]}" class="${tab === t[0] ? 'on' : ''}">${t[1]} (${c[t[0]]})</button>`).join('');
+  const list = orders.filter(o => o.status === tab);
+  $('rdw-list').innerHTML = list.length ? list.map(o => {
+    const cu = o.customer || {}, pay = o.payment || {};
+    const btns = o.status === 'pending' ? `<button class="rdw-b p" data-act="confirm" data-id="${E(o.id)}">Confirm</button><button class="rdw-b g" data-act="deliver" data-id="${E(o.id)}">Mark delivered</button><button class="rdw-b d" data-act="cancel" data-id="${E(o.id)}">Cancel</button>`
+      : o.status === 'confirmed' ? `<button class="rdw-b g" data-act="deliver" data-id="${E(o.id)}">Mark delivered</button><button class="rdw-b d" data-act="cancel" data-id="${E(o.id)}">Cancel</button>`
+      : o.status === 'delivered' && o.saleId ? `<button class="rdw-b" data-act="memo" data-id="${E(o.id)}">View memo</button>` : '';
+    return `<div class="rdw-o"><div class="top"><div><span class="id">${E(o.id)}</span> <span class="rdw-s ${E(o.status)}">${E(o.status)}</span>
+      <div class="mut">${new Date(o.createdAt).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })}${o.applied ? '' : ' · syncing stock…'}</div></div>
+      <div style="text-align:right"><b style="font-size:15px">${M(o.total)}</b><div class="mut">${pay.method === 'bkash' ? 'bKash · TrxID ' + E(pay.trxId) : 'Cash on delivery'}</div></div></div>
+      <div style="margin-top:8px"><b>${E(cu.name)}</b> · <a href="tel:${E(cu.phone)}" style="color:#1d4ed8">${E(cu.phone)}</a><div class="mut">${E(cu.address)}${cu.zone === 'outside' ? ' (outside Dhaka)' : ''}${cu.note ? ' · Note: ' + E(cu.note) : ''}</div></div>
+      <div style="margin-top:8px;border-top:1px dashed #e5e7eb;padding-top:6px">${(o.items || []).map(i => `<div class="rdw-it"><span>${E(i.name)} <span class="mut">[${E(i.size)}] ×${num(i.qty)}</span></span><span>${M(num(i.price) * num(i.qty))}</span></div>`).join('')}
+      <div class="rdw-it mut"><span>Delivery</span><span>${num(o.delivery) ? M(o.delivery) : 'Free'}</span></div></div>
+      <div class="rdw-bar">${btns}</div></div>`;
+  }).join('') : '<div class="rdw-em">No orders here.</div>';
+}
+
+/* =========================================================
+   5) ENTRY POINTS: sidebar, phone tiles
+========================================================= */
+function addButtons() {
+  const menu = $('pb-menu');
+  if (menu && !$('rdw-menu-btn')) {
+    const b = document.createElement('button');
+    b.id = 'rdw-menu-btn'; b.type = 'button'; b.className = 'pb-it';
+    b.setAttribute('data-t', 'openOnlineOrders'); b.setAttribute('data-perm', 'pos');
+    b.innerHTML = '<i data-lucide="globe"></i><span>Online Orders</span><span class="rdw-badge zero" id="rdw-badge"></span>';
+    menu.insertBefore(b, menu.children[1] || null);
+    if (window.lucide) lucide.createIcons();
+  }
+  const tiles = $('m-tiles');
+  if (tiles && !$('rdw-tile')) {
+    const t = document.createElement('button');
+    t.id = 'rdw-tile'; t.type = 'button'; t.className = 'tile'; t.setAttribute('data-perm', 'pos');
+    t.innerHTML = '<span class="ti" style="background:#dbeafe;color:#1d4ed8"><i data-lucide="globe"></i></span><span class="tl">Online Orders <span class="rdw-badge zero" style="display:inline-block;min-width:18px;margin-left:4px;padding:0 6px;border-radius:999px;background:#e11d2e;color:#fff;font-size:11px;text-align:center"></span></span>';
+    t.addEventListener('click', (e) => { e.stopPropagation(); openWin(); });
+    tiles.appendChild(t);
+    if (window.lucide) lucide.createIcons();
+  }
+  badge();
+}
+const st = document.createElement('style');
+st.textContent = '.rdw-badge{display:inline-block;min-width:18px;margin-left:6px;padding:0 6px;border-radius:999px;background:#e11d2e;color:#fff;font-size:11px;font-weight:700;text-align:center}.rdw-badge.zero{display:none!important}';
+document.head.appendChild(st);
+addButtons();
+setInterval(addButtons, 2000);
 </script>
 </body>
 </html>
