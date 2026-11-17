@@ -28,6 +28,8 @@ input,select,textarea{font:inherit;color:inherit}
 /* announcement */
 .ann{background:var(--ink);color:var(--bg);text-align:center;font-size:.85rem;padding:7px 14px;font-weight:500}
 .ann b{color:#ffd9dc;font-weight:600}
+.closed{background:var(--red);color:#fff;text-align:center;font-size:.9rem;padding:9px 14px;font-weight:600}
+.closed[hidden]{display:none}
 
 /* top bar */
 .top{position:sticky;top:0;z-index:30;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0)}
@@ -38,6 +40,8 @@ input,select,textarea{font:inherit;color:inherit}
 .search svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:var(--mut);pointer-events:none}
 .search input{width:100%;padding:10px 16px 10px 40px;border:1px solid transparent;border-radius:999px;background:var(--soft);transition:.15s}
 .search input:focus{outline:0;border-color:var(--ink);background:var(--bg)}
+.trk-btn{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:9px 14px;font-weight:600;white-space:nowrap;font-size:.9rem}
+.trk-btn:hover{border-color:var(--ink)}
 .cart-btn{display:flex;align-items:center;gap:8px;border:0;background:var(--ink);color:var(--bg);border-radius:999px;padding:9px 16px;font-weight:600;white-space:nowrap;transition:transform .15s}
 .cart-btn:active{transform:scale(.96)}
 .cart-btn svg{width:18px;height:18px}
@@ -73,13 +77,14 @@ input,select,textarea{font:inherit;color:inherit}
 .card:hover .ph img{transform:scale(1.06)}
 .ph .ltr{font-family:'Bricolage Grotesque';font-weight:800;font-size:4.4rem;letter-spacing:-.05em;opacity:.85}
 .tag{position:absolute;left:10px;top:10px;background:var(--bg);border-radius:999px;padding:3px 11px;font-size:.78rem;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.12)}
-.tag.low{color:var(--warn)} .tag.out{color:var(--red)}
+.tag.low{color:var(--warn)} .tag.out{color:var(--red)} .tag.off{background:var(--red);color:#fff}
 .card .quick{position:absolute;left:10px;right:10px;bottom:10px;background:var(--bg);border-radius:10px;padding:9px;text-align:center;font-weight:600;font-size:.9rem;opacity:0;transform:translateY(8px);transition:.2s;box-shadow:0 4px 14px rgba(0,0,0,.15)}
 @media(hover:hover){.card:hover .quick{opacity:1;transform:none}}
 .card.so .ph img,.card.so .ltr{opacity:.45;filter:grayscale(1)}
 .card h3{margin-top:10px;font-size:1rem;font-weight:700;letter-spacing:-.01em;line-height:1.25}
 .card .sub{color:var(--mut);font-size:.85rem}
 .price{font-weight:700;margin-top:3px;font-size:1.05rem}
+.was{color:var(--mut);font-weight:500;font-size:.85em;text-decoration:line-through;margin-left:6px}
 .empty{grid-column:1/-1;text-align:center;color:var(--mut);padding:70px 0}
 .sk .ph{animation:pulse 1.3s infinite}
 .sk i{display:block;height:12px;border-radius:6px;background:var(--soft2);margin-top:10px;width:70%;animation:pulse 1.3s infinite}
@@ -92,13 +97,25 @@ input,select,textarea{font:inherit;color:inherit}
 @keyframes fade{from{opacity:0}}
 .panel{position:fixed;z-index:50;background:var(--bg);display:none;overflow:auto;box-shadow:var(--sh)}
 .panel.on{display:block}
-#pm{left:50%;top:50%;transform:translate(-50%,-50%);width:min(880px,94vw);max-height:92vh;border-radius:18px}
-#pm.on{animation:pop .25s cubic-bezier(.2,.8,.2,1)}
+#pm,#trk{left:50%;top:50%;transform:translate(-50%,-50%);border-radius:18px}
+#pm{width:min(880px,94vw);max-height:92vh}
+#trk{width:min(480px,94vw);max-height:92vh;padding:22px}
+#pm.on,#trk.on{animation:pop .25s cubic-bezier(.2,.8,.2,1)}
 @keyframes pop{from{opacity:0;transform:translate(-50%,-48%) scale(.97)}}
 .pm-g{display:grid;grid-template-columns:1fr 1fr}
 .pm-g .ph{border-radius:18px 0 0 18px;height:100%;aspect-ratio:auto;min-height:380px}
+.gal{display:flex;flex-direction:column;background:var(--soft);border-radius:18px 0 0 18px;min-width:0}
+.gal .ph{flex:1;border-radius:18px 0 0 0;height:auto}
+.thumbs{display:flex;gap:6px;padding:8px;overflow-x:auto;scrollbar-width:none}
+.thumbs button{flex:0 0 58px;height:58px;border:2px solid transparent;border-radius:10px;overflow:hidden;padding:0;background:var(--soft2)}
+.thumbs button[aria-pressed=true]{border-color:var(--ink)}
+.thumbs img{width:100%;height:100%;object-fit:cover;display:block}
 .pm-b{padding:30px 28px}
 .pm-b h2{font-size:1.75rem;letter-spacing:-.03em;line-height:1.1;margin-top:4px}
+.desc{margin-top:12px;color:var(--mut);font-size:.95rem;white-space:pre-line}
+.sg{margin-top:12px;border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:.9rem}
+.sg summary{cursor:pointer;font-weight:600}
+.sg div{margin-top:6px;color:var(--mut);white-space:pre-line}
 .x{position:absolute;right:12px;top:12px;border:0;background:var(--bg);border-radius:50%;width:36px;height:36px;font-size:1.05rem;z-index:2;box-shadow:0 2px 8px rgba(0,0,0,.18)}
 .sz{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 4px}
 .sz button{min-width:62px;padding:9px 10px;border:1px solid var(--line);background:var(--bg);border-radius:10px;text-align:center;line-height:1.15;font-weight:600;transition:.15s}
@@ -141,9 +158,15 @@ input,select,textarea{font:inherit;color:inherit}
 .rm:hover{color:var(--red)}
 .row{display:flex;justify-content:space-between;gap:10px;padding:3px 0}
 .row.t{font-weight:700;font-size:1.15rem;border-top:1px solid var(--line);margin-top:6px;padding-top:10px}
+.row.disc{color:var(--ok);font-weight:600}
 .f input:not([type=radio]),.f select,.f textarea{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:var(--bg);margin-top:5px;font-weight:400;transition:.15s}
 .f input:focus,.f select:focus,.f textarea:focus{outline:0;border-color:var(--ink);box-shadow:0 0 0 3px color-mix(in srgb,var(--ink) 12%,transparent)}
 .f textarea{resize:vertical;min-height:70px}
+.cpn{display:flex;gap:8px;align-items:stretch;margin-top:5px}
+.cpn input{margin-top:0!important;text-transform:uppercase}
+.cpn button{border:0;background:var(--ink);color:var(--bg);border-radius:10px;padding:0 16px;font-weight:600}
+.cmsg{font-size:.82rem;margin-top:6px;color:var(--red);font-weight:500}
+.cmsg.ok{color:var(--ok)}
 .opt{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border:1px solid var(--line);border-radius:12px;margin-top:8px;cursor:pointer;transition:.15s}
 .opt:has(input:checked){border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink);background:var(--soft)}
 .opt input{margin-top:6px;accent-color:var(--red)}
@@ -155,8 +178,26 @@ input,select,textarea{font:inherit;color:inherit}
 .done h2{font-size:1.7rem;margin:14px 0 6px}
 .done code{display:inline-block;margin:8px 0;padding:8px 16px;border-radius:10px;background:var(--soft);font-weight:700;font-size:1.15rem;letter-spacing:.02em}
 footer{border-top:1px solid var(--line);padding:30px 18px;text-align:center;color:var(--mut);font-size:.9rem;background:var(--soft)}
-footer a{color:var(--ink);font-weight:600;text-decoration:none}
+footer a,footer .lnk{color:var(--ink);font-weight:600;text-decoration:none}
+footer .lnk{border:0;background:none;padding:0;text-decoration:underline}
+footer p+p{margin-top:6px}
 #toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:11px 20px;border-radius:999px;z-index:80;display:none;font-weight:500;box-shadow:var(--sh)}
+
+/* order tracking */
+.t-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.t-h h2{font-size:1.3rem}
+.t-f input{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:var(--bg);margin-top:5px}
+.t-f input:focus{outline:0;border-color:var(--ink)}
+.stp{display:flex;gap:6px;margin:16px 0 4px}
+.stp div{flex:1;text-align:center;font-size:.78rem;font-weight:600;color:var(--mut)}
+.stp i{display:block;height:5px;border-radius:5px;background:var(--soft2);margin-bottom:6px}
+.stp .on{color:var(--ink)}
+.stp .on i{background:var(--red)}
+.tbox{margin-top:14px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--soft);font-size:.92rem}
+
+#wa{position:fixed;right:16px;bottom:calc(22px + env(safe-area-inset-bottom,0));z-index:34;display:none;align-items:center;gap:8px;background:#1faa59;color:#fff;border-radius:999px;padding:11px 16px;font-weight:600;font-size:.9rem;text-decoration:none;box-shadow:var(--sh)}
+#wa svg{width:20px;height:20px}
+#wa.on{display:flex}
 
 @media(max-width:720px){
   .hero{grid-template-columns:1fr;padding-top:30px}
@@ -165,15 +206,20 @@ footer a{color:var(--ink);font-weight:600;text-decoration:none}
   .trust span{display:none}
   .pm-g{grid-template-columns:1fr}
   .pm-g .ph{border-radius:18px 18px 0 0;min-height:0;aspect-ratio:1/1;height:auto}
-  #pm{top:auto;bottom:0;left:0;transform:none;width:100%;border-radius:20px 20px 0 0;max-height:92vh}
-  #pm.on{animation:up .28s cubic-bezier(.2,.8,.2,1)}
+  .gal{border-radius:18px 18px 0 0}
+  .gal .ph{flex:none;border-radius:18px 18px 0 0}
+  #pm,#trk{top:auto;bottom:0;left:0;transform:none;width:100%;border-radius:20px 20px 0 0;max-height:92vh}
+  #pm.on,#trk.on{animation:up .28s cubic-bezier(.2,.8,.2,1)}
   @keyframes up{from{transform:translateY(100%)}}
   .pm-b{padding:22px 18px 26px}
   .grid{grid-template-columns:repeat(2,1fr);gap:20px 10px}
   .search{max-width:none}
   .brand{font-size:1.2rem}
   .cart-btn span{display:none}
+  .trk-btn{display:none}
   .chips-w{top:57px}
+  #wa{bottom:calc(86px + env(safe-area-inset-bottom,0));padding:12px}
+  #wa span{display:none}
 }
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
 
@@ -212,18 +258,20 @@ a.btn{display:block;text-align:center;text-decoration:none;margin-top:10px}
 </head>
 <body>
 
-<div class="ann">Cash on delivery · <b>Free delivery</b> on big orders · 7-day exchange</div>
+<div class="ann" id="ann">Cash on delivery · <b>Free delivery</b> on big orders · 7-day exchange</div>
+<div class="closed" id="closed" hidden></div>
 
 <header class="top"><div class="top-in">
   <a class="brand" href="#" id="brand-name">Real <i>Dream</i></a>
   <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" placeholder="Search garments" aria-label="Search garments"></div>
+  <button class="trk-btn" id="open-track" type="button">Track order</button>
   <button class="cart-btn" id="open-cart" type="button" aria-label="Open cart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 13H7L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg><span>Cart</span><b id="cart-n">0</b></button>
 </div></header>
 
 <section class="hero">
   <div>
-    <h1>Dress for the day you’re having.</h1>
-    <p>Shirts, panjabis, jeans and more. Pick your size, order online, and pay when it arrives.</p>
+    <h1 id="hero-h">Dress for the day you’re having.</h1>
+    <p id="hero-p">Shirts, panjabis, jeans and more. Pick your size, order online, and pay when it arrives.</p>
   </div>
   <div class="trust">
     <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg><p style="margin:0"><b>Cash on delivery</b><span>Pay when it arrives</span></p></div>
@@ -238,26 +286,33 @@ a.btn{display:block;text-align:center;text-decoration:none;margin-top:10px}
 <main class="grid" id="grid" aria-live="polite"></main>
 <footer id="foot"></footer>
 
+<a id="wa" href="#" target="_blank" rel="noopener" aria-label="Chat on WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8.5 8.5 0 0 1-12.4 7.6L3 21l1.4-5.4A8.5 8.5 0 1 1 21 12Z"/></svg><span>Chat with us</span></a>
+
 <div class="scrim" id="scrim"></div>
 <section class="panel" id="pm" role="dialog" aria-modal="true" aria-label="Product"></section>
+<section class="panel" id="trk" role="dialog" aria-modal="true" aria-label="Track order"></section>
 <aside class="panel" id="cart" role="dialog" aria-modal="true" aria-label="Cart"></aside>
 <button class="cartbar" id="cartbar" type="button"></button>
 <div id="toast" role="status"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getFirestore, collection, doc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { getFirestore, collection, doc, onSnapshot, runTransaction, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-/* ===================== SETTINGS: edit these ===================== */
+/* ===================== SETTINGS: defaults (the POS "Website Manager" overrides these live) ===================== */
 const SHOP = {
   name: "Real Dream",
-  phone: "01705530627",            // shop phone (shown in footer)
-  bkashNumber: "01705530627",      // your bKash personal/merchant number
-  deliveryInside: 60,              // inside Dhaka
-  deliveryOutside: 120,            // outside Dhaka
+  phone: "01705530627",
+  bkashNumber: "01705530627",
+  deliveryInside: 60,
+  deliveryOutside: 120,
   freeDeliveryOver: 3000,          // 0 = never free
-  currency: "৳"
+  minOrder: 0,
+  currency: "৳",
+  cod: true, bkash: true, open: true,
+  closedMsg: "", footer: "", sizeGuide: "", whatsapp: ""
 };
+const BASE = JSON.parse(JSON.stringify(SHOP));
 const firebaseConfig = {
   apiKey: "AIzaSyDgz4OwNcDlomNw3vPAH3kbiqPOEiACMQ4",
   authDomain: "website-test-2e000.firebaseapp.com",
@@ -268,8 +323,10 @@ const firebaseConfig = {
 };
 /* ================================================================ */
 
-const COL_SHOP = "clothpos_shop";       // public catalog mirrored by the POS (no cost prices)
-const COL_ORD  = "clothpos_orders";     // orders go here; the POS picks them up
+const COL_SHOP = "clothpos_shop";            // public catalog mirrored by the POS (no cost prices)
+const COL_ORD  = "clothpos_orders";          // orders go here; the POS picks them up
+const COL_META = "clothpos_webmeta";         // per-product website extras (hide, featured, images, description...)
+const COL_CFG  = "clothpos_webconfig";       // website settings + coupons (doc "main")
 
 const db = getFirestore(initializeApp(firebaseConfig));
 const $ = (id) => document.getElementById(id);
@@ -277,6 +334,7 @@ const num = (v) => Number(v) || 0;
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
 const money = (n) => SHOP.currency + " " + Math.round(num(n)).toLocaleString("en-US");
 
+let shopDocs = [], meta = {}, cfg = {};
 let products = [], loaded = false, cat = "All", query = "", sortBy = "def";
 let cart = []; try { cart = JSON.parse(localStorage.getItem("rd_cart") || "[]"); } catch (e) {}
 const saveCart = () => { try { localStorage.setItem("rd_cart", JSON.stringify(cart)); } catch (e) {} };
@@ -293,39 +351,91 @@ function toggleWish(id) {
   toast(isW(id) ? "Saved for later" : "Removed from saved"); render(); refreshModal();
 }
 const variant = (p, size) => p && (p.variants || []).find(v => String(v.size) === String(size));
+const imgsOf = (p) => (p.imgs && p.imgs.length) ? p.imgs : (p.image ? [p.image] : []);
+const offPct = (p) => num(p.compare) > num(p.sellPrice) && num(p.sellPrice) > 0 ? Math.round((1 - num(p.sellPrice) / num(p.compare)) * 100) : 0;
+const waNum = (n) => { n = String(n || "").replace(/\D/g, ""); return n.startsWith("880") ? n : "88" + n.replace(/^0*/, "0"); };
 
-/* ---------- live catalog ---------- */
+/* ---------- live data ---------- */
 onSnapshot(collection(db, COL_SHOP), (snap) => {
-  products = snap.docs.map(d => d.data()).filter(p => p && p.name);
-  products.sort((a, b) => (stockOf(b) > 0) - (stockOf(a) > 0) || String(a.name).localeCompare(String(b.name)));
-  loaded = true; render(); renderCart(); refreshModal();
-  if (!deepDone) { deepDone = true; const m = location.hash.match(/^#p=(.+)$/); if (m) openProduct(decodeURIComponent(m[1])); }
+  shopDocs = snap.docs.map(d => d.data()).filter(p => p && p.name);
+  rebuild();
 }, () => { loaded = true; $("grid").innerHTML = '<div class="empty">The shop could not load. Please refresh in a moment.</div>'; });
+
+onSnapshot(collection(db, COL_META), (snap) => {
+  meta = {}; snap.docs.forEach(d => { meta[d.id] = d.data(); });
+  rebuild();
+}, () => {});
+
+onSnapshot(doc(db, COL_CFG, "main"), (s) => {
+  cfg = s.exists() ? s.data() : {};
+  applyCfg();
+}, () => {});
+
+function rebuild() {
+  products = shopDocs
+    .filter(p => !(meta[String(p.id)] && meta[String(p.id)].hidden))
+    .map(p => Object.assign({}, p, meta[String(p.id)] || {}));
+  products.sort((a, b) => (stockOf(b) > 0) - (stockOf(a) > 0) || (!!b.featured - !!a.featured) || String(a.name).localeCompare(String(b.name)));
+  loaded = true; render(); renderCart(); refreshModal();
+  if (!deepDone && shopDocs.length) { deepDone = true; const m = location.hash.match(/^#p=(.+)$/); if (m) openProduct(decodeURIComponent(m[1])); }
+}
+
+/* ---------- website settings from the POS ---------- */
+const ANN0 = $("ann").innerHTML, HEROH0 = $("hero-h").textContent, HEROP0 = $("hero-p").textContent;
+function applyCfg() {
+  Object.assign(SHOP, BASE);
+  const c = cfg || {};
+  if (c.name) SHOP.name = String(c.name);
+  if (c.phone) SHOP.phone = String(c.phone);
+  if (c.bkashNumber) SHOP.bkashNumber = String(c.bkashNumber);
+  ["deliveryInside", "deliveryOutside", "freeDeliveryOver", "minOrder"].forEach(k => { if (c[k] !== undefined && c[k] !== null && c[k] !== "") SHOP[k] = num(c[k]); });
+  SHOP.cod = c.codOn !== false; SHOP.bkash = c.bkashOn !== false; SHOP.open = c.open !== false;
+  SHOP.closedMsg = c.closedMsg || ""; SHOP.footer = c.footer || ""; SHOP.sizeGuide = c.sizeGuide || "";
+  SHOP.whatsapp = c.whatsapp || SHOP.phone;
+
+  const words = String(SHOP.name).trim().split(/\s+/), first = words.shift();
+  $("brand-name").innerHTML = words.length ? `${esc(first)} <i>${esc(words.join(" "))}</i>` : esc(first);
+  if (c.announcement) $("ann").textContent = c.announcement; else $("ann").innerHTML = ANN0;
+  $("hero-h").textContent = c.heroTitle || HEROH0;
+  $("hero-p").textContent = c.heroText || HEROP0;
+  const cl = $("closed"); cl.hidden = SHOP.open; cl.textContent = SHOP.closedMsg || "We are not taking new orders right now. Please check back soon.";
+  const wa = $("wa"); wa.href = "https://wa.me/" + waNum(SHOP.whatsapp); wa.classList.toggle("on", !!String(SHOP.whatsapp).replace(/\D/g, ""));
+  document.title = SHOP.name + " — Shop";
+  drawFoot(); render(); renderCart(); refreshModal();
+}
+function drawFoot() {
+  $("foot").innerHTML = `<p>© ${new Date().getFullYear()} ${esc(SHOP.name)} · Call <a href="tel:${esc(SHOP.phone)}">${esc(SHOP.phone)}</a> · <button class="lnk" type="button" id="foot-track">Track your order</button></p>` +
+    (SHOP.footer ? `<p>${esc(SHOP.footer)}</p>` : "");
+}
+$("foot").addEventListener("click", (e) => { if (e.target.closest("#foot-track")) openTrack(); });
 
 /* ---------- catalog ---------- */
 function thumb(p) {
-  return p.image ? `<img src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy" onerror="this.style.display='none'">`
-                 : `<span class="ltr" aria-hidden="true">${esc(String(p.name).trim()[0] || "•")}</span>`;
+  const im = imgsOf(p)[0];
+  return im ? `<img src="${esc(im)}" alt="${esc(p.name)}" loading="lazy" onerror="this.style.display='none'">`
+            : `<span class="ltr" aria-hidden="true">${esc(String(p.name).trim()[0] || "•")}</span>`;
 }
+const priceHtml = (p) => money(p.sellPrice) + (offPct(p) ? `<span class="was">${money(p.compare)}</span>` : "");
 const SKEL = '<div class="sk"><div class="ph"></div><i></i><i></i></div>'.repeat(8);
 function render() {
-  const cats = ["All", ...(wish.length ? ["__saved"] : []), ...new Set(products.map(p => p.category).filter(Boolean))];
+  const cats = ["All", ...(products.some(p => p.featured) ? ["__feat"] : []), ...(wish.length ? ["__saved"] : []), ...new Set(products.map(p => p.category).filter(Boolean))];
   if (!cats.includes(cat)) cat = "All";
-  $("chips").innerHTML = cats.map(c => `<button class="chip" type="button" data-cat="${esc(c)}" aria-pressed="${c === cat}">${c === "__saved" ? "♥ Saved (" + wish.length + ")" : esc(c)}</button>`).join("");
+  $("chips").innerHTML = cats.map(c => `<button class="chip" type="button" data-cat="${esc(c)}" aria-pressed="${c === cat}">${c === "__saved" ? "♥ Saved (" + wish.length + ")" : c === "__feat" ? "★ Featured" : esc(c)}</button>`).join("");
   const q = query.toLowerCase().trim();
-  const list = products.filter(p => (cat === "All" || (cat === "__saved" ? isW(p.id) : p.category === cat)) &&
-    (!q || [p.name, p.category, p.color, p.brand].some(x => String(x || "").toLowerCase().includes(q))));
+  const inCat = (p) => cat === "All" || (cat === "__saved" ? isW(p.id) : cat === "__feat" ? !!p.featured : p.category === cat);
+  const list = products.filter(p => inCat(p) && (!q || [p.name, p.category, p.color, p.brand].some(x => String(x || "").toLowerCase().includes(q))));
   if (sortBy !== "def") list.sort((a, b) => (stockOf(b) > 0) - (stockOf(a) > 0) || (sortBy === "lo" ? 1 : -1) * (num(a.sellPrice) - num(b.sellPrice)));
   if (!loaded) { $("grid").innerHTML = SKEL; $("count").textContent = ""; return; }
   const rec = recent.map(byId).filter(Boolean);
   $("recent").innerHTML = rec.length > 1 && cat === "All" && !q ? `<h4>Recently viewed</h4><div class="rrow">${rec.map(p => `<button class="rc" type="button" data-id="${esc(p.id)}"><div class="ph">${thumb(p)}</div><small>${esc(p.name)}</small></button>`).join("")}</div>` : "";
   $("count").textContent = list.length ? list.length + (list.length === 1 ? " item" : " items") : "";
   $("grid").innerHTML = list.length ? list.map(p => {
-    const s = stockOf(p);
-    const t = s <= 0 ? '<span class="tag out">Sold out</span>' : s < 4 ? `<span class="tag low">Only ${s} left</span>` : "";
+    const s = stockOf(p), off = offPct(p);
+    const t = s <= 0 ? '<span class="tag out">Sold out</span>' : s < 4 ? `<span class="tag low">Only ${s} left</span>`
+      : off ? `<span class="tag off">-${off}%</span>` : p.badge ? `<span class="tag">${esc(p.badge)}</span>` : "";
     return `<button class="card${s <= 0 ? " so" : ""}" type="button" data-id="${esc(p.id)}"><div class="ph">${thumb(p)}${t}${heart(p.id)}${s > 0 ? '<span class="quick">Choose size</span>' : ""}</div>
       <h3>${esc(p.name)}</h3><div class="sub">${esc(p.category || "")}${p.color ? " · " + esc(p.color) : ""}</div>
-      <div class="price">${money(p.sellPrice)}</div></button>`;
+      <div class="price">${priceHtml(p)}</div></button>`;
   }).join("") : `<div class="empty">${products.length ? "Nothing matches your search. Try another word or category." : "No products yet. Please check back soon."}</div>`;
 }
 $("chips").addEventListener("click", (e) => { const b = e.target.closest("[data-cat]"); if (b) { cat = b.dataset.cat; render(); } });
@@ -344,14 +454,14 @@ $("recent").addEventListener("click", (e) => { const c = e.target.closest("[data
 /* ---------- panels ---------- */
 let pmState = null;
 function showPanel(id) { $("scrim").classList.add("on"); $(id).classList.add("on"); document.body.style.overflow = "hidden"; }
-function closeAll() { ["pm", "cart"].forEach(i => $(i).classList.remove("on")); $("scrim").classList.remove("on"); document.body.style.overflow = ""; pmState = null; }
+function closeAll() { ["pm", "cart", "trk"].forEach(i => $(i).classList.remove("on")); $("scrim").classList.remove("on"); document.body.style.overflow = ""; pmState = null; }
 $("scrim").addEventListener("click", closeAll);
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeAll(); });
 
 function openProduct(id) {
   const p = byId(id); if (!p) return;
   const first = (p.variants || []).find(v => num(v.stock) > 0);
-  pmState = { id: String(p.id), size: first ? first.size : null, qty: 1 };
+  pmState = { id: String(p.id), size: first ? first.size : null, qty: 1, img: 0 };
   recent = [String(p.id), ...recent.filter(x => x !== String(p.id))].slice(0, 8); lsSet("rd_recent", recent);
   refreshModal(); showPanel("pm");
 }
@@ -362,23 +472,31 @@ function refreshModal() {
   if (!v || num(v.stock) <= 0) { const f = (p.variants || []).find(x => num(x.stock) > 0); pmState.size = f ? f.size : null; v = f; }
   const max = v ? num(v.stock) : 0;
   pmState.qty = Math.max(1, Math.min(pmState.qty, Math.max(1, max)));
+  const imgs = imgsOf(p);
+  pmState.img = Math.min(pmState.img || 0, Math.max(0, imgs.length - 1));
+  const mainImg = imgs.length ? `<img src="${esc(imgs[pmState.img])}" alt="${esc(p.name)}" style="transition:none">` : `<span class="ltr" aria-hidden="true">${esc(String(p.name).trim()[0] || "•")}</span>`;
+  const thumbs = imgs.length > 1 ? `<div class="thumbs">${imgs.map((u, i) => `<button type="button" data-img="${i}" aria-pressed="${i === pmState.img}" aria-label="Photo ${i + 1}"><img src="${esc(u)}" alt=""></button>`).join("")}</div>` : "";
+  const off = offPct(p);
   $("pm").innerHTML = `<button class="x" type="button" data-a="close" aria-label="Close">✕</button>
-  <div class="pm-g"><div class="ph">${thumb(p)}</div><div class="pm-b">
+  <div class="pm-g"><div class="gal"><div class="ph">${mainImg}</div>${thumbs}</div><div class="pm-b">
     <div class="hint">${esc(p.category || "")}${p.color ? " · " + esc(p.color) : ""}</div>
-    <h2>${esc(p.name)}</h2><div class="price" style="font-size:1.5rem;margin-top:8px">${money(p.sellPrice)}</div>
+    <h2>${esc(p.name)}</h2><div class="price" style="font-size:1.5rem;margin-top:8px">${priceHtml(p)}${off ? ` <span class="tag off" style="position:static;display:inline-block;margin-left:6px;vertical-align:middle">-${off}%</span>` : ""}</div>
+    ${p.desc ? `<p class="desc">${esc(p.desc)}</p>` : ""}
     <div class="acts"><button class="mini${isW(p.id) ? " on" : ""}" type="button" data-a="wish">${isW(p.id) ? "♥ Saved" : "♡ Save"}</button><button class="mini" type="button" data-a="share">Share</button></div>
     <span class="lbl">Size</span>
     <div class="sz">${(p.variants || []).map(x => {
       const n = num(x.stock);
       return `<button type="button" data-size="${esc(x.size)}" aria-pressed="${String(x.size) === String(pmState.size)}" ${n <= 0 ? "disabled" : ""}>${esc(x.size)}<small>${n <= 0 ? "sold out" : n < 4 ? n + " left" : "in stock"}</small></button>`;
     }).join("")}</div>
+    ${SHOP.sizeGuide ? `<details class="sg"><summary>Size guide</summary><div>${esc(SHOP.sizeGuide)}</div></details>` : ""}
     <span class="lbl">Quantity</span>
     <div class="qty"><button type="button" data-a="dec" aria-label="Decrease">−</button><span>${pmState.qty}</span><button type="button" data-a="inc" aria-label="Increase">+</button></div>
     <div style="margin-top:22px"><button class="btn" type="button" data-a="add" ${max <= 0 ? "disabled" : ""}>${max <= 0 ? "Sold out" : "Add to cart · " + money(num(p.sellPrice) * pmState.qty)}</button></div>
-    <div class="perks"><span>✓ Cash on delivery available</span><span>✓ Exchange within 7 days</span></div>
+    <div class="perks"><span>✓ ${SHOP.cod ? "Cash on delivery available" : "Pay securely with bKash"}</span><span>✓ Exchange within 7 days</span></div>
   </div></div>`;
 }
 $("pm").addEventListener("click", (e) => {
+  const im = e.target.closest("[data-img]"); if (im && pmState) { pmState.img = Number(im.dataset.img); refreshModal(); return; }
   const sz = e.target.closest("[data-size]"); if (sz && pmState) { pmState.size = sz.dataset.size; pmState.qty = 1; refreshModal(); return; }
   const a = e.target.closest("[data-a]"); if (!a || !pmState) return;
   const p = byId(pmState.id), v = variant(p, pmState.size), max = v ? num(v.stock) : 0;
@@ -411,7 +529,6 @@ function updateBadge() {
 }
 $("cartbar").addEventListener("click", () => $("open-cart").click());
 function resolved() {
-  // drop lines whose product/size vanished, clamp to live stock
   return cart.map(l => {
     const p = byId(l.pid), v = variant(p, l.size);
     return p && v ? { ...l, p, v, ok: num(v.stock) >= l.qty, max: num(v.stock) } : null;
@@ -426,7 +543,31 @@ function shipBar(sub) {
   if (sub >= T) return '<div class="ship ok">🎉 You get free delivery!</div>';
   return `<div class="ship">Add <b>${money(T - sub)}</b> more for free delivery<div class="bar"><i style="width:${Math.min(100, sub / T * 100)}%"></i></div></div>`;
 }
+
+/* ---------- coupons ---------- */
+let coupon = "", cMsg = "";
+const findCoupon = (code) => (cfg.coupons || []).find(x => String(x.code).toUpperCase() === String(code).toUpperCase());
+function couponCheck(c, sub) {
+  if (!c || c.active === false) return "This code is not valid.";
+  if (c.expires && new Date(c.expires + "T23:59:59") < new Date()) return "This code has expired.";
+  if (sub < num(c.min)) return "Add " + money(num(c.min) - sub) + " more to use this code.";
+  return "";
+}
+function discOf(sub) {
+  if (!coupon) return 0;
+  const c = findCoupon(coupon); if (couponCheck(c, sub)) return 0;
+  let d = c.type === "percent" ? Math.floor(sub * num(c.value) / 100) : num(c.value);
+  if (c.type === "percent" && num(c.cap) > 0) d = Math.min(d, num(c.cap));
+  return Math.max(0, Math.min(d, sub));
+}
+
 let step = "cart", zone = ME.z || "inside", err = "";
+const payPick = () => {
+  const codOn = SHOP.cod || !SHOP.bkash;
+  let pay = (document.querySelector("input[name=pay]:checked") || {}).value;
+  if (!pay || (pay === "cod" && !codOn) || (pay === "bkash" && !SHOP.bkash)) pay = codOn ? "cod" : "bkash";
+  return pay;
+};
 function renderCart() {
   updateBadge();
   const el = $("cart"); if (!el.classList.contains("on") && step !== "done") return;
@@ -435,33 +576,39 @@ function renderCart() {
   if (step === "done") return;
   if (!L.length) { el.innerHTML = head("Your cart") + '<div class="c-b"><div class="empty">Your cart is empty.<br>Pick something you like and it will show up here.</div></div>'; return; }
   if (step === "cart") {
-    el.innerHTML = head("Your cart", 1) + `<div class="c-b">${shipBar(sub)}${L.map((l, i) => `<div class="ln"><div class="th">${l.p.image ? `<img src="${esc(l.p.image)}" alt="">` : esc(String(l.p.name)[0])}</div>
+    el.innerHTML = head("Your cart", 1) + `<div class="c-b">${shipBar(sub)}${L.map((l, i) => `<div class="ln"><div class="th">${imgsOf(l.p)[0] ? `<img src="${esc(imgsOf(l.p)[0])}" alt="">` : esc(String(l.p.name)[0])}</div>
       <div class="in"><b>${esc(l.p.name)}</b><span class="hint">Size ${esc(l.size)} · ${money(l.p.sellPrice)}</span>
       ${l.ok ? "" : `<div style="color:var(--red);font-size:.82rem">Only ${l.max} left in this size</div>`}
       <div style="display:flex;align-items:center;gap:12px;margin-top:6px"><div class="qty"><button type="button" data-a="cdec" data-i="${i}" aria-label="Decrease">−</button><span>${l.qty}</span><button type="button" data-a="cinc" data-i="${i}" aria-label="Increase">+</button></div>
       <button class="rm" type="button" data-a="crm" data-i="${i}">Remove</button></div></div>
       <b>${money(num(l.p.sellPrice) * l.qty)}</b></div>`).join("")}</div>
-      <div class="c-f"><div class="row"><span>Subtotal</span><b>${money(sub)}</b></div><p class="hint">Delivery is added at checkout.</p>
+      <div class="c-f"><div class="row"><span>Subtotal</span><b>${money(sub)}</b></div><p class="hint">Delivery and discount codes are added at checkout.</p>
       <div style="margin-top:10px"><button class="btn" type="button" data-a="checkout" ${L.every(l => l.ok) ? "" : "disabled"}>Checkout</button></div></div>`;
   } else {
-    const d = deliveryFor(sub, zone), total = sub + d;
-    const pay = (document.querySelector("input[name=pay]:checked") || {}).value || "cod";
+    const disc = discOf(sub), after = sub - disc, d = deliveryFor(after, zone), total = after + d;
+    const pay = payPick(), codOn = SHOP.cod || !SHOP.bkash;
+    const cMsgHtml = coupon
+      ? (disc > 0 ? `<div class="cmsg ok">Code ${esc(coupon)} applied: −${money(disc)} <button class="rm" type="button" data-a="uncoupon">Remove</button></div>`
+                  : `<div class="cmsg">${esc(couponCheck(findCoupon(coupon), sub) || "This code is not valid.")} <button class="rm" type="button" data-a="uncoupon">Remove</button></div>`)
+      : (cMsg ? `<div class="cmsg">${esc(cMsg)}</div>` : "");
     el.innerHTML = head("Checkout", 2) + `<form class="c-b f" id="co" novalidate>
       <label class="lbl">Full name<input id="f-name" autocomplete="name" required></label>
       <label class="lbl">Mobile number<input id="f-phone" inputmode="numeric" autocomplete="tel" placeholder="01XXXXXXXXX" required></label>
       <label class="lbl">Delivery area<select id="f-zone"><option value="inside" ${zone === "inside" ? "selected" : ""}>Inside Dhaka (${money(SHOP.deliveryInside)})</option><option value="outside" ${zone === "outside" ? "selected" : ""}>Outside Dhaka (${money(SHOP.deliveryOutside)})</option></select></label>
       <label class="lbl">Full address<textarea id="f-addr" autocomplete="street-address" required placeholder="House, road, area, district"></textarea></label>
       <label class="lbl">Note (optional)<input id="f-note"></label>
+      ${(cfg.coupons || []).some(c => c.active !== false) || coupon ? `<span class="lbl">Discount code</span><div class="cpn"><input id="f-coupon" placeholder="Enter code" autocapitalize="characters" value="${esc(coupon)}"><button type="button" data-a="coupon">Apply</button></div>${cMsgHtml}` : ""}
       <span class="lbl">Payment</span>
-      <label class="opt"><input type="radio" name="pay" value="cod" ${pay === "cod" ? "checked" : ""}><span><b>Cash on delivery</b><br><span class="hint">Pay when you receive the parcel.</span></span></label>
-      <label class="opt"><input type="radio" name="pay" value="bkash" ${pay === "bkash" ? "checked" : ""}><span><b>bKash</b><br><span class="hint">Send ${money(total)} to ${esc(SHOP.bkashNumber)}, then enter the transaction ID.</span></span></label>
+      ${codOn ? `<label class="opt"><input type="radio" name="pay" value="cod" ${pay === "cod" ? "checked" : ""}><span><b>Cash on delivery</b><br><span class="hint">Pay when you receive the parcel.</span></span></label>` : ""}
+      ${SHOP.bkash ? `<label class="opt"><input type="radio" name="pay" value="bkash" ${pay === "bkash" ? "checked" : ""}><span><b>bKash</b><br><span class="hint">Send ${money(total)} to ${esc(SHOP.bkashNumber)}, then enter the transaction ID.</span></span></label>` : ""}
       <div id="trx" style="display:${pay === "bkash" ? "block" : "none"}"><label class="lbl">bKash transaction ID<input id="f-trx" autocapitalize="characters"></label></div>
       <div class="err" id="err" style="display:${err ? "block" : "none"}">${esc(err)}</div>
     </form>
     <div class="c-f"><div class="row"><span>Subtotal</span><span>${money(sub)}</span></div>
+      ${disc > 0 ? `<div class="row disc"><span>Discount</span><span>−${money(disc)}</span></div>` : ""}
       <div class="row"><span>Delivery</span><span>${d ? money(d) : "Free"}</span></div>
       <div class="row t"><span>Total</span><span>${money(total)}</span></div>
-      <div style="display:flex;gap:8px;margin-top:12px"><button class="btn alt" type="button" data-a="back" style="width:38%">Back</button><button class="btn" type="button" data-a="place" id="place">Place order · ${money(total)}</button></div></div>`;
+      <div style="display:flex;gap:8px;margin-top:12px"><button class="btn alt" type="button" data-a="back" style="width:38%">Back</button><button class="btn" type="button" data-a="place" id="place" ${SHOP.open ? "" : "disabled"}>${SHOP.open ? "Place order · " + money(total) : "Orders paused"}</button></div></div>`;
   }
 }
 $("open-cart").addEventListener("click", () => { step = "cart"; err = ""; renderCart(); showPanel("cart"); renderCart(); });
@@ -472,9 +619,23 @@ $("cart").addEventListener("change", (e) => {
   if (e.target.id === "f-zone") { zone = e.target.value; keepForm(); renderCart(); restoreForm(); }
   if (e.target.name === "pay") { keepForm(); renderCart(); restoreForm(); }
 });
+$("cart").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && e.target.id === "f-coupon") { e.preventDefault(); applyCoupon(); }
+});
 let kept = ME.n ? { "f-name": ME.n, "f-phone": ME.p, "f-addr": ME.a } : {};
 function keepForm() { ["f-name", "f-phone", "f-addr", "f-note", "f-trx"].forEach(i => { if ($(i)) kept[i] = $(i).value; }); }
 function restoreForm() { Object.keys(kept).forEach(i => { if ($(i)) $(i).value = kept[i]; }); }
+function applyCoupon() {
+  keepForm();
+  const code = ($("f-coupon") ? $("f-coupon").value : "").trim().toUpperCase();
+  const sub = resolved().reduce((a, l) => a + num(l.p.sellPrice) * l.qty, 0);
+  if (!code) { cMsg = "Enter a code first."; coupon = ""; }
+  else {
+    const c = findCoupon(code), m = c ? couponCheck(c, sub) : "That code is not valid.";
+    if (m) { cMsg = m; coupon = ""; } else { coupon = String(c.code).toUpperCase(); cMsg = ""; }
+  }
+  renderCart(); restoreForm();
+}
 
 $("cart").addEventListener("click", (e) => {
   const a = e.target.closest("[data-a]"); if (!a) return;
@@ -486,8 +647,11 @@ $("cart").addEventListener("click", (e) => {
   else if (act === "crm" && line) { cart = cart.filter(c => c !== line); saveCart(); renderCart(); }
   else if (act === "checkout") { step = "form"; err = ""; renderCart(); restoreForm(); }
   else if (act === "back") { keepForm(); step = "cart"; renderCart(); }
+  else if (act === "coupon") applyCoupon();
+  else if (act === "uncoupon") { keepForm(); coupon = ""; cMsg = ""; renderCart(); restoreForm(); }
   else if (act === "place") placeOrder();
   else if (act === "copy") { try { navigator.clipboard.writeText(a.dataset.id); toast("Order number copied"); } catch (x) { toast(a.dataset.id); } }
+  else if (act === "track") { closeAll(); openTrack(a.dataset.id, a.dataset.ph); }
   else if (act === "again") { closeAll(); step = "cart"; }
 });
 
@@ -497,8 +661,9 @@ async function placeOrder() {
   if (placing) return;
   keepForm();
   const name = (kept["f-name"] || "").trim(), phone = (kept["f-phone"] || "").replace(/[\s-]/g, ""), addr = (kept["f-addr"] || "").trim();
-  const pay = (document.querySelector("input[name=pay]:checked") || {}).value || "cod", trx = (kept["f-trx"] || "").trim();
+  const pay = payPick(), trx = (kept["f-trx"] || "").trim();
   const fail = (m) => { err = m; renderCart(); restoreForm(); const b = $("err"); if (b) b.scrollIntoView({ block: "nearest", behavior: "smooth" }); };
+  if (!SHOP.open) return fail(SHOP.closedMsg || "We are not taking new orders right now.");
   if (name.length < 2) return fail("Please enter your name.");
   if (!/^01[3-9]\d{8}$/.test(phone)) return fail("Enter a valid 11-digit mobile number, like 01712345678.");
   if (addr.length < 8) return fail("Please enter your full delivery address.");
@@ -506,7 +671,10 @@ async function placeOrder() {
 
   const L = resolved();
   if (!L.length || !L.every(l => l.ok)) return fail("Some items are no longer available. Go back and check your cart.");
-  const sub = L.reduce((a, l) => a + num(l.p.sellPrice) * l.qty, 0), d = deliveryFor(sub, zone);
+  const sub = L.reduce((a, l) => a + num(l.p.sellPrice) * l.qty, 0);
+  if (SHOP.minOrder && sub < SHOP.minOrder) return fail("Minimum order is " + money(SHOP.minOrder) + ".");
+  const disc = discOf(sub), d = deliveryFor(sub - disc, zone), total = sub - disc + d;
+  const code = disc > 0 ? coupon : "";
   const id = "ORD-" + Date.now().toString().slice(-8) + Math.floor(10 + Math.random() * 90);
 
   placing = true; const btn = $("place"); btn.disabled = true; btn.textContent = "Placing order…";
@@ -526,19 +694,19 @@ async function placeOrder() {
         customer: { name, phone, address: addr, zone, note: (kept["f-note"] || "").trim() },
         payment: { method: pay, trxId: pay === "bkash" ? trx : "" },
         items: L.map(l => ({ productId: String(l.p.id), name: l.p.name, category: l.p.category || "", color: l.p.color || "", size: String(l.size), price: num(l.p.sellPrice), qty: l.qty })),
-        subtotal: sub, delivery: d, total: sub + d
+        subtotal: sub, discount: disc, coupon: code, delivery: d, total
       });
     });
-    const waTxt = `Order ${id}\nName: ${name}\nPhone: ${phone}\nAddress: ${addr}\n` + L.map(l => `${l.p.name} (${l.size}) x${l.qty}`).join("\n") + `\nTotal: ${money(sub + d)}`;
-    const waUrl = "https://wa.me/88" + SHOP.phone.replace(/\D/g, "") + "?text=" + encodeURIComponent(waTxt);
-    lsSet("rd_me", { n: name, p: phone, a: addr, z: zone });
-    cart = []; saveCart(); kept = { "f-name": name, "f-phone": phone, "f-addr": addr }; step = "done"; err = "";
+    const waTxt = `Order ${id}\nName: ${name}\nPhone: ${phone}\nAddress: ${addr}\n` + L.map(l => `${l.p.name} (${l.size}) x${l.qty}`).join("\n") + (disc ? `\nDiscount (${code}): -${money(disc)}` : "") + `\nTotal: ${money(total)}`;
+    const waUrl = "https://wa.me/" + waNum(SHOP.whatsapp || SHOP.phone) + "?text=" + encodeURIComponent(waTxt);
+    lsSet("rd_me", { n: name, p: phone, a: addr, z: zone }); lsSet("rd_last", { id, phone });
+    cart = []; saveCart(); coupon = ""; cMsg = ""; kept = { "f-name": name, "f-phone": phone, "f-addr": addr }; step = "done"; err = "";
     $("cart").innerHTML = `<div class="c-h"><h2>Order placed</h2><button class="rm" type="button" data-a="close" style="font-size:1rem">Close</button></div>
       <div class="done"><div class="ck">✓</div><h2>Thank you, ${esc(name.split(" ")[0])}!</h2>
       <p>Your order number is</p><code>${esc(id)}</code>
       <p class="hint" style="margin-top:8px">We will call ${esc(phone)} to confirm. Keep this number to track your order.</p>
       <button class="rm" type="button" data-a="copy" data-id="${esc(id)}">Copy order number</button>
-      <div style="margin-top:22px"><button class="btn" type="button" data-a="again">Continue shopping</button><a class="btn alt" href="${waUrl}" target="_blank" rel="noopener">Send order on WhatsApp</a><a class="btn alt" href="tel:${esc(SHOP.phone)}">Call the shop</a></div></div>`;
+      <div style="margin-top:22px"><button class="btn" type="button" data-a="again">Continue shopping</button><button class="btn alt" type="button" data-a="track" data-id="${esc(id)}" data-ph="${esc(phone)}" style="margin-top:10px">Track this order</button><a class="btn alt" href="${waUrl}" target="_blank" rel="noopener">Send order on WhatsApp</a><a class="btn alt" href="tel:${esc(SHOP.phone)}">Call the shop</a></div></div>`;
     updateBadge();
   } catch (ex) {
     console.error(ex);
@@ -548,10 +716,53 @@ async function placeOrder() {
   } finally { placing = false; }
 }
 
+/* ---------- order tracking ---------- */
+let trk = { id: "", ph: "", res: null, msg: "", busy: false };
+const last10 = (s) => String(s || "").replace(/\D/g, "").slice(-10);
+function openTrack(id, ph) {
+  const last = lsGet("rd_last", {});
+  trk = { id: id || last.id || "", ph: ph || last.phone || ME.p || "", res: null, msg: "", busy: false };
+  drawTrack(); showPanel("trk");
+  if (trk.id && trk.ph && id) lookup();
+}
+$("open-track").addEventListener("click", () => openTrack());
+function drawTrack() {
+  const o = trk.res, STEPS = [["pending", "Order placed"], ["confirmed", "Confirmed"], ["delivered", "Delivered"]];
+  let result = "";
+  if (o) {
+    const idx = STEPS.findIndex(s => s[0] === o.status);
+    result = o.status === "cancelled"
+      ? `<div class="err">This order was cancelled. Call ${esc(SHOP.phone)} if you need help.</div>`
+      : `<div class="stp">${STEPS.map((s, i) => `<div class="${i <= idx ? "on" : ""}"><i></i>${s[1]}</div>`).join("")}</div>`;
+    result += `<div class="tbox">${(o.items || []).map(i => `<div class="row"><span>${esc(i.name)} <span class="hint">[${esc(i.size)}] ×${num(i.qty)}</span></span><span>${money(num(i.price) * num(i.qty))}</span></div>`).join("")}
+      ${num(o.discount) > 0 ? `<div class="row disc"><span>Discount${o.coupon ? " (" + esc(o.coupon) + ")" : ""}</span><span>−${money(o.discount)}</span></div>` : ""}
+      <div class="row"><span>Delivery</span><span>${num(o.delivery) ? money(o.delivery) : "Free"}</span></div>
+      <div class="row t"><span>Total</span><span>${money(o.total)}</span></div></div>`;
+  }
+  $("trk").innerHTML = `<div class="t-h"><h2>Track your order</h2><button class="rm" type="button" id="t-close" style="font-size:1rem">Close</button></div>
+    <div class="t-f"><label class="lbl">Order number<input id="t-id" placeholder="ORD-12345678" autocapitalize="characters" value="${esc(trk.id)}"></label>
+    <label class="lbl">Mobile number used for the order<input id="t-ph" inputmode="numeric" placeholder="01XXXXXXXXX" value="${esc(trk.ph)}"></label></div>
+    ${trk.msg ? `<div class="err">${esc(trk.msg)}</div>` : ""}
+    <div style="margin-top:14px"><button class="btn" type="button" id="t-go" ${trk.busy ? "disabled" : ""}>${trk.busy ? "Checking…" : "Check status"}</button></div>${result}`;
+}
+async function lookup() {
+  trk.id = $("t-id").value.trim().toUpperCase(); trk.ph = $("t-ph").value.trim(); trk.res = null; trk.msg = "";
+  if (!trk.id || last10(trk.ph).length < 10) { trk.msg = "Enter your order number and mobile number."; return drawTrack(); }
+  trk.busy = true; drawTrack();
+  try {
+    const s = await getDoc(doc(db, COL_ORD, trk.id));
+    const o = s.exists() ? s.data() : null;
+    if (!o || last10(o.customer && o.customer.phone) !== last10(trk.ph)) trk.msg = "We couldn’t find an order with these details.";
+    else trk.res = o;
+  } catch (e) { trk.msg = "Tracking isn’t available right now. Please call " + SHOP.phone + "."; }
+  trk.busy = false; drawTrack();
+}
+$("trk").addEventListener("click", (e) => { if (e.target.closest("#t-close")) closeAll(); if (e.target.closest("#t-go")) lookup(); });
+$("trk").addEventListener("keydown", (e) => { if (e.key === "Enter" && /^t-/.test(e.target.id)) { e.preventDefault(); lookup(); } });
+
 function toast(m) { const t = $("toast"); t.textContent = m; t.style.display = "block"; clearTimeout(toast.t); toast.t = setTimeout(() => t.style.display = "none", 2200); }
 
-document.title = SHOP.name + " — Shop";
-$("foot").innerHTML = `© ${new Date().getFullYear()} ${esc(SHOP.name)} · Call <a href="tel:${esc(SHOP.phone)}">${esc(SHOP.phone)}</a>`;
+drawFoot();
 updateBadge(); render();
 </script>
 </body>
