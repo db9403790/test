@@ -12015,5 +12015,334 @@ document.head.appendChild(st);
 addButtons();
 setInterval(addButtons, 2000);
 </script>
+<!-- ===== REAL DREAM: WEBSITE MANAGER PATCH =====
+     Paste this whole block at the VERY END of your POS file, right before </body>
+     (after the "Website Connection + Online Orders" patch). Nothing else needs to change. -->
+<style id="rdwm-css">
+#rdwm-modal{position:fixed;inset:0;z-index:126;background:rgba(15,23,42,.6);display:none;align-items:flex-start;justify-content:center;padding:12px;overflow:auto}
+.wm-box{background:#fff;border-radius:14px;max-width:880px;width:100%;margin-top:2vh;padding:16px;box-shadow:0 20px 50px rgba(0,0,0,.3);font-size:13px;color:#111827}
+.wm-hd{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid #eee}
+.wm-hd h3{font-size:17px;font-weight:700}
+.wm-b{padding:8px 13px;border-radius:9px;border:1px solid #d4d4d8;background:#fff;font-weight:700;font-size:12px;cursor:pointer}
+.wm-b:hover{background:#f9fafb}.wm-b.p{background:#e11d2e;border-color:#e11d2e;color:#fff}.wm-b.p:hover{background:#bf1625}.wm-b.d{color:#dc2626;border-color:#fecaca;background:#fff5f5}
+.wm-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}
+.wm-tabs button{padding:7px 14px;border-radius:999px;border:1px solid #e5e7eb;background:#fff;font-weight:700;font-size:12px;cursor:pointer}
+.wm-tabs button.on{background:#111827;color:#fff;border-color:#111827}
+.wm-gr{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.wm-gr .full{grid-column:1/-1}
+.wm-box label.l{display:block;font-size:11px;font-weight:700;color:#52525b;margin-bottom:3px}
+.wm-in{width:100%;padding:8px 10px;border:1px solid #d4d4d8;border-radius:8px;font-size:14px;background:#fff}
+.wm-in:focus{border-color:#e11d2e;outline:none;box-shadow:0 0 0 3px rgba(225,29,46,.12)}
+textarea.wm-in{min-height:70px;resize:vertical}
+.wm-ck{display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px}
+.wm-sec{font-weight:800;font-size:13px;margin:16px 0 8px;padding-top:12px;border-top:1px solid #f0f0f2}
+.wm-sec:first-child{margin-top:0;border:0;padding-top:0}
+.wm-note{background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:8px 10px;color:#92400e;margin-bottom:10px}
+.wm-bar{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+.wm-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid #f1f1f3;flex-wrap:wrap}
+.wm-row .im{width:46px;height:46px;border-radius:8px;background:#f1f1f3;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-weight:800}
+.wm-row .im img{width:100%;height:100%;object-fit:cover}
+.wm-row .nm{flex:1 1 200px;min-width:0;font-weight:700}
+.wm-row .nm small{display:block;color:#6b7280;font-weight:500}
+.wm-st{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:700;background:#f4f4f5;color:#52525b}
+.wm-st.on{background:#dcfce7;color:#15803d}.wm-st.off{background:#fee2e2;color:#b91c1c}.wm-st.star{background:#fef3c7;color:#92400e}
+.wm-imgs{display:flex;gap:8px;flex-wrap:wrap}
+.wm-imgs .ph{position:relative;width:84px;height:84px;border-radius:10px;overflow:hidden;border:1px solid #e5e7eb}
+.wm-imgs .ph img{width:100%;height:100%;object-fit:cover}
+.wm-imgs .ph button{position:absolute;right:3px;top:3px;border:0;background:#fff;border-radius:50%;width:22px;height:22px;font-weight:800;color:#dc2626;cursor:pointer}
+.wm-em{text-align:center;color:#9ca3af;padding:30px 0}
+.wm-hint{color:#6b7280;font-size:12px;margin-top:3px}
+</style>
+
+<script type="module" id="rdwm-js">
+import { getApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+const $ = (id) => document.getElementById(id);
+const num = (v) => Number(v) || 0;
+const E = (s) => esc(s);
+const toast = (m, t) => window.showToast && window.showToast(m, t || 'info');
+const canDo = () => typeof window.can !== 'function' || window.can('settings');
+const clean = (o) => JSON.parse(JSON.stringify(o));
+
+const app = getApp(), db = getFirestore(app), auth = getAuth(app);
+const COL_META = 'clothpos_webmeta', COL_CFG = 'clothpos_webconfig';
+let cfg = {}, meta = {}, tab = 'settings', q = '', editId = null, draft = null, unsubs = [];
+
+/* ---------- live data ---------- */
+onAuthStateChanged(auth, (u) => {
+  unsubs.forEach(f => { try { f(); } catch (e) {} }); unsubs = []; cfg = {}; meta = {};
+  if (!u) return;
+  unsubs.push(onSnapshot(doc(db, COL_CFG, 'main'), (s) => { cfg = s.exists() ? s.data() : {}; if (isOpen() && tab === 'coupons') render(); },
+    () => toast('Website settings could not load. Add Firestore rules for clothpos_webconfig.', 'warning')));
+  unsubs.push(onSnapshot(collection(db, COL_META), (snap) => {
+    meta = {}; snap.docs.forEach(d => { meta[d.id] = d.data(); });
+    if (isOpen() && tab === 'products' && !editId) render();
+  }, () => toast('Website product data could not load. Add Firestore rules for clothpos_webmeta.', 'warning')));
+});
+
+/* ---------- window ---------- */
+const isOpen = () => { const m = $('rdwm-modal'); return m && m.style.display === 'flex'; };
+function build() {
+  if ($('rdwm-modal')) return;
+  const m = document.createElement('div');
+  m.id = 'rdwm-modal'; m.className = 'no-print';
+  m.innerHTML = '<div class="wm-box"><div class="wm-hd"><h3>Website Manager</h3><div style="display:flex;gap:6px;flex-wrap:wrap">' +
+    '<button type="button" class="wm-b" id="wm-orders">Online orders</button><button type="button" class="wm-b" id="wm-sync">Sync all products</button><button type="button" class="wm-b" id="wm-x">Close</button></div></div>' +
+    '<div class="wm-tabs" id="wm-tabs"></div><div id="wm-body"></div></div>';
+  document.body.appendChild(m);
+  m.addEventListener('mousedown', (e) => { if (e.target === m) closeWin(); });
+  $('wm-x').onclick = closeWin;
+  $('wm-sync').onclick = () => window.syncAllToWebsite && window.syncAllToWebsite();
+  $('wm-orders').onclick = () => { closeWin(); window.openOnlineOrders && window.openOnlineOrders(); };
+  $('wm-tabs').addEventListener('click', (e) => { const b = e.target.closest('[data-t]'); if (b) { tab = b.dataset.t; editId = null; draft = null; render(); } });
+  $('wm-body').addEventListener('click', onClick);
+  $('wm-body').addEventListener('change', onChange);
+  $('wm-body').addEventListener('input', (e) => { if (e.target.id === 'wp-q') { q = e.target.value; const l = $('wm-plist'); if (l) l.innerHTML = prodRows(); } });
+}
+function openWin() {
+  if (!canDo()) return toast('You do not have permission to manage the website.', 'warning');
+  build(); tab = 'settings'; editId = null; draft = null;
+  $('rdwm-modal').style.display = 'flex'; render();
+}
+function closeWin() { const m = $('rdwm-modal'); if (m) m.style.display = 'none'; }
+window.openWebsiteManager = openWin;
+
+function render() {
+  $('wm-tabs').innerHTML = [['settings', 'Settings'], ['products', 'Products'], ['coupons', 'Discount codes']]
+    .map(t => `<button type="button" data-t="${t[0]}" class="${tab === t[0] ? 'on' : ''}">${t[1]}</button>`).join('');
+  $('wm-body').innerHTML = tab === 'settings' ? settingsHtml() : tab === 'products' ? (editId ? editorHtml() : productsHtml()) : couponsHtml();
+}
+
+/* =========================================================
+   SETTINGS
+========================================================= */
+const f = (label, id, val, type, ph) => `<div><label class="l" for="${id}">${label}</label><input class="wm-in" id="${id}" type="${type || 'text'}" value="${E(val == null ? '' : val)}" placeholder="${E(ph || '')}"></div>`;
+function settingsHtml() {
+  const c = cfg, sc = (typeof shopConfig !== 'undefined' && shopConfig) || {};
+  const d = (v, def) => (v === undefined || v === null || v === '') ? def : v;
+  return `<div class="wm-sec">Shop details shown on the website</div><div class="wm-gr">
+      ${f('Shop name', 'ws-name', d(c.name, sc.name || ''))}${f('Shop phone', 'ws-phone', d(c.phone, '01705530627'))}
+      ${f('WhatsApp number', 'ws-wa', d(c.whatsapp, ''), 'text', 'Leave empty to use the shop phone')}${f('bKash number', 'ws-bk', d(c.bkashNumber, '01705530627'))}
+    </div>
+    <div class="wm-sec">Delivery and orders</div><div class="wm-gr">
+      ${f('Delivery charge inside Dhaka (৳)', 'ws-di', d(c.deliveryInside, 60), 'number')}${f('Delivery charge outside Dhaka (৳)', 'ws-do', d(c.deliveryOutside, 120), 'number')}
+      ${f('Free delivery over (৳) — 0 = never', 'ws-free', d(c.freeDeliveryOver, 3000), 'number')}${f('Minimum order (৳) — 0 = none', 'ws-min', d(c.minOrder, 0), 'number')}
+      <label class="wm-ck"><input type="checkbox" id="ws-cod" ${c.codOn !== false ? 'checked' : ''}> Cash on delivery</label>
+      <label class="wm-ck"><input type="checkbox" id="ws-bkon" ${c.bkashOn !== false ? 'checked' : ''}> bKash payment</label>
+      <div><label class="l" for="ws-open">Taking orders?</label><select class="wm-in" id="ws-open"><option value="1" ${c.open !== false ? 'selected' : ''}>Open — customers can order</option><option value="0" ${c.open === false ? 'selected' : ''}>Paused — show closed notice</option></select></div>
+      ${f('Message when paused', 'ws-closed', d(c.closedMsg, ''), 'text', 'e.g. Closed for Eid. Back on Sunday.')}
+    </div>
+    <div class="wm-sec">Homepage text</div><div class="wm-gr">
+      <div class="full">${f('Top announcement bar', 'ws-ann', d(c.announcement, ''), 'text', 'e.g. Eid sale: 15% off with code EID15')}</div>
+      ${f('Big headline', 'ws-hh', d(c.heroTitle, ''), 'text', 'Leave empty for the default')}${f('Sub text under headline', 'ws-hp', d(c.heroText, ''))}
+      <div class="full">${f('Footer note', 'ws-foot', d(c.footer, ''), 'text', 'e.g. Shop address, opening hours')}</div>
+      <div class="full"><label class="l" for="ws-sg">Size guide (shown on every product)</label><textarea class="wm-in" id="ws-sg" placeholder="M = chest 38, L = chest 40...">${E(d(c.sizeGuide, ''))}</textarea></div>
+    </div>
+    <div class="wm-bar"><button type="button" class="wm-b p" data-a="savecfg">Save website settings</button></div>`;
+}
+async function saveSettings() {
+  const g = (id) => ($(id).value || '').trim();
+  const data = {
+    name: g('ws-name'), phone: g('ws-phone'), whatsapp: g('ws-wa'), bkashNumber: g('ws-bk'),
+    deliveryInside: Math.max(0, num(g('ws-di'))), deliveryOutside: Math.max(0, num(g('ws-do'))),
+    freeDeliveryOver: Math.max(0, num(g('ws-free'))), minOrder: Math.max(0, num(g('ws-min'))),
+    codOn: $('ws-cod').checked, bkashOn: $('ws-bkon').checked, open: $('ws-open').value === '1', closedMsg: g('ws-closed'),
+    announcement: g('ws-ann'), heroTitle: g('ws-hh'), heroText: g('ws-hp'), footer: g('ws-foot'), sizeGuide: $('ws-sg').value.trim(),
+    updatedAt: new Date().toISOString()
+  };
+  if (!data.codOn && !data.bkashOn) return toast('Turn on at least one payment method.', 'warning');
+  try { await setDoc(doc(db, COL_CFG, 'main'), clean(data), { merge: true }); cfg = Object.assign({}, cfg, data); toast('✅ Website settings saved. The site updates instantly.', 'success'); }
+  catch (e) { toast('Could not save: ' + (e.code || e.message) + '. Check Firestore rules for clothpos_webconfig.', 'error'); }
+}
+
+/* =========================================================
+   PRODUCTS
+========================================================= */
+function prodRows() {
+  const ql = q.toLowerCase().trim();
+  const list = products.filter(p => !ql || [p.name, p.category, p.color].some(x => String(x || '').toLowerCase().includes(ql)));
+  if (!list.length) return '<div class="wm-em">No products found.</div>';
+  return list.map(p => {
+    const m = meta[p.id] || {}, img = (m.imgs && m.imgs[0]) || p.image || '', stock = (p.variants || []).reduce((a, v) => a + num(v.stock), 0);
+    return `<div class="wm-row"><div class="im">${img ? `<img src="${E(img)}" alt="">` : E(String(p.name).trim()[0] || '•')}</div>
+      <div class="nm">${E(p.name)}<small>${E(p.category)} • ৳${num(p.sellPrice)}${num(m.compare) > num(p.sellPrice) ? ' (was ৳' + num(m.compare) + ')' : ''} • ${stock} pcs</small></div>
+      <label class="wm-ck"><input type="checkbox" data-a="vis" data-id="${E(p.id)}" ${m.hidden ? '' : 'checked'}> On website</label>
+      <label class="wm-ck"><input type="checkbox" data-a="feat" data-id="${E(p.id)}" ${m.featured ? 'checked' : ''}> Featured</label>
+      <button type="button" class="wm-b" data-a="edit" data-id="${E(p.id)}">Edit page</button></div>`;
+  }).join('');
+}
+function productsHtml() {
+  const hidden = products.filter(p => (meta[p.id] || {}).hidden).length, feat = products.filter(p => (meta[p.id] || {}).featured).length;
+  return `<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:6px">
+      <input class="wm-in" id="wp-q" placeholder="Search products..." value="${E(q)}" style="max-width:300px">
+      <span class="wm-st on">${products.length - hidden} on website</span><span class="wm-st off">${hidden} hidden</span><span class="wm-st star">${feat} featured</span></div>
+    <div class="wm-hint">Untick "On website" to hide a garment from customers. Featured items show first and get a ★ Featured filter.</div>
+    <div id="wm-plist">${prodRows()}</div>`;
+}
+function editorHtml() {
+  const p = products.find(x => x.id === editId); if (!p) { editId = null; return productsHtml(); }
+  const d = draft;
+  return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><div><b style="font-size:15px">${E(p.name)}</b><div class="wm-hint">${E(p.category)} • sale price ৳${num(p.sellPrice)} (change in Stock)</div></div>
+      <button type="button" class="wm-b" data-a="back">← Back to list</button></div>
+    <div class="wm-gr" style="margin-top:12px">
+      ${f('Old price to cross out (৳) — optional', 'we-cmp', d.compare || '', 'number', 'Higher than the sale price, e.g. ' + Math.round(num(p.sellPrice) * 1.2))}
+      ${f('Badge text — optional', 'we-badge', d.badge || '', 'text', 'e.g. New, Eid special')}
+      <div class="full"><label class="l" for="we-desc">Description (fabric, fit, care...)</label><textarea class="wm-in" id="we-desc">${E(d.desc || '')}</textarea></div>
+      <div class="full"><label class="l">Photos (up to 4, first one is the cover)</label>
+        <div class="wm-imgs" id="we-imgs">${imgsHtml()}</div>
+        <div style="margin-top:8px"><button type="button" class="wm-b" data-a="addimg">+ Add photos</button> <input type="file" id="we-file" accept="image/*" multiple style="display:none"></div>
+        <div class="wm-hint">Photos are resized automatically so the website stays fast.</div></div>
+    </div>
+    <div class="wm-bar"><button type="button" class="wm-b" data-a="back">Cancel</button><button type="button" class="wm-b p" data-a="savemeta">Save product page</button></div>`;
+}
+const imgsHtml = () => (draft.imgs || []).map((u, i) => `<div class="ph"><img src="${E(u)}" alt=""><button type="button" data-a="rmimg" data-i="${i}" title="Remove">✕</button></div>`).join('') || '<span class="wm-hint">No photos yet.</span>';
+
+function toDataUrl(file) {
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file), im = new Image();
+    im.onload = () => {
+      const sc = Math.min(1, 720 / Math.max(im.naturalWidth, im.naturalHeight)), c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(im.naturalWidth * sc)); c.height = Math.max(1, Math.round(im.naturalHeight * sc));
+      const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', 0.72));
+    };
+    im.onerror = () => { URL.revokeObjectURL(url); rej(new Error('bad image')); };
+    im.src = url;
+  });
+}
+const readDraft = () => { draft.compare = num($('we-cmp').value) || 0; draft.badge = $('we-badge').value.trim(); draft.desc = $('we-desc').value.trim(); };
+
+async function saveMeta() {
+  readDraft();
+  const total = (draft.imgs || []).reduce((a, u) => a + u.length, 0);
+  if (total > 850000) return toast('Photos are too large together. Remove one or use smaller photos.', 'warning');
+  const p = products.find(x => x.id === editId); if (!p) return;
+  if (draft.compare && draft.compare <= num(p.sellPrice)) return toast('Old price must be higher than the sale price (or leave it empty).', 'warning');
+  try {
+    await setDoc(doc(db, COL_META, String(editId)), clean({ compare: draft.compare || 0, badge: draft.badge || '', desc: draft.desc || '', imgs: draft.imgs || [] }), { merge: true });
+    toast('✅ Product page saved', 'success'); editId = null; draft = null; render();
+  } catch (e) { toast('Could not save: ' + (e.code || e.message) + '. Check Firestore rules for clothpos_webmeta.', 'error'); }
+}
+async function setFlag(id, field, val) {
+  try { await setDoc(doc(db, COL_META, String(id)), { [field]: val }, { merge: true }); }
+  catch (e) { toast('Could not save: ' + (e.code || e.message), 'error'); render(); }
+}
+
+/* =========================================================
+   DISCOUNT CODES
+========================================================= */
+function couponsHtml() {
+  const list = cfg.coupons || [];
+  const rows = list.length ? list.map((c, i) => {
+    const expired = c.expires && new Date(c.expires + 'T23:59:59') < new Date();
+    return `<div class="wm-row"><div class="nm" style="font-family:monospace">${E(c.code)}<small>${c.type === 'percent' ? num(c.value) + '% off' + (num(c.cap) ? ' (max ৳' + num(c.cap) + ')' : '') : '৳' + num(c.value) + ' off'}${num(c.min) ? ' • min order ৳' + num(c.min) : ''}${c.expires ? ' • until ' + E(c.expires) : ''}</small></div>
+      <span class="wm-st ${expired ? 'off' : c.active === false ? '' : 'on'}">${expired ? 'Expired' : c.active === false ? 'Off' : 'Active'}</span>
+      <button type="button" class="wm-b" data-a="ctoggle" data-i="${i}">${c.active === false ? 'Turn on' : 'Turn off'}</button>
+      <button type="button" class="wm-b d" data-a="cdel" data-i="${i}">Delete</button></div>`;
+  }).join('') : '<div class="wm-em">No discount codes yet.</div>';
+  return `<div class="wm-note">Customers enter these codes at checkout. The discount is saved on the order and in your sales report.</div>
+    <div class="wm-gr">
+      ${f('Code', 'wc-code', '', 'text', 'EID15')}
+      <div><label class="l" for="wc-type">Type</label><select class="wm-in" id="wc-type"><option value="percent">Percent off (%)</option><option value="flat">Flat amount off (৳)</option></select></div>
+      ${f('Value', 'wc-val', '', 'number', '15')}${f('Minimum order (৳)', 'wc-min', '', 'number', '0')}
+      ${f('Max discount for % codes (৳)', 'wc-cap', '', 'number', 'optional')}${f('Valid until', 'wc-exp', '', 'date')}
+    </div>
+    <div class="wm-bar"><button type="button" class="wm-b p" data-a="cadd">Add code</button></div>
+    <div class="wm-sec">Your codes</div>${rows}`;
+}
+async function saveCoupons(list) {
+  try { await setDoc(doc(db, COL_CFG, 'main'), { coupons: clean(list) }, { merge: true }); cfg.coupons = list; render(); }
+  catch (e) { toast('Could not save: ' + (e.code || e.message), 'error'); }
+}
+
+/* ---------- events ---------- */
+function onClick(e) {
+  const b = e.target.closest('[data-a]'); if (!b) return;
+  const a = b.dataset.a, id = b.dataset.id, i = Number(b.dataset.i);
+  if (a === 'savecfg') saveSettings();
+  else if (a === 'edit') { const m = meta[id] || {}; editId = id; draft = { compare: num(m.compare), badge: m.badge || '', desc: m.desc || '', imgs: (m.imgs || []).slice() }; render(); }
+  else if (a === 'back') { editId = null; draft = null; render(); }
+  else if (a === 'addimg') {
+    if ((draft.imgs || []).length >= 4) return toast('Maximum 4 photos per product.', 'warning');
+    const fi = $('we-file'); fi.onchange = async () => {
+      const files = Array.from(fi.files || []); fi.value = '';
+      readDraft();
+      for (const file of files) {
+        if ((draft.imgs || []).length >= 4) break;
+        try { draft.imgs.push(await toDataUrl(file)); } catch (x) { toast('Could not read one of the photos.', 'error'); }
+      }
+      const box = $('we-imgs'); if (box) box.innerHTML = imgsHtml();
+    };
+    fi.click();
+  }
+  else if (a === 'rmimg') { readDraft(); draft.imgs.splice(i, 1); $('we-imgs').innerHTML = imgsHtml(); }
+  else if (a === 'savemeta') saveMeta();
+  else if (a === 'cadd') {
+    const code = $('wc-code').value.trim().toUpperCase().replace(/[^A-Z0-9_-]/g, ''), type = $('wc-type').value, val = num($('wc-val').value);
+    if (!code) return toast('Enter a code (letters and numbers).', 'warning');
+    if (val <= 0) return toast('Enter the discount value.', 'warning');
+    if (type === 'percent' && val > 90) return toast('Percent discount cannot be more than 90.', 'warning');
+    const list = (cfg.coupons || []).slice();
+    if (list.some(c => String(c.code).toUpperCase() === code)) return toast('This code already exists.', 'warning');
+    list.push({ code, type, value: val, min: Math.max(0, num($('wc-min').value)), cap: Math.max(0, num($('wc-cap').value)), expires: $('wc-exp').value || '', active: true });
+    saveCoupons(list); toast('✅ Code ' + code + ' added', 'success');
+  }
+  else if (a === 'ctoggle') { const list = (cfg.coupons || []).slice(); if (list[i]) { list[i] = Object.assign({}, list[i], { active: list[i].active === false }); saveCoupons(list); } }
+  else if (a === 'cdel') { if (!confirm('Delete this code?')) return; const list = (cfg.coupons || []).slice(); list.splice(i, 1); saveCoupons(list); }
+}
+function onChange(e) {
+  const t = e.target, a = t.dataset && t.dataset.a;
+  if (a === 'vis') setFlag(t.dataset.id, 'hidden', !t.checked).then(() => toast(t.checked ? 'Shown on website' : 'Hidden from website', 'info'));
+  else if (a === 'feat') setFlag(t.dataset.id, 'featured', t.checked);
+}
+
+/* =========================================================
+   Online-order discount: put the coupon discount on the sales record
+   (the Online Orders window creates the sale; this fixes its totals)
+========================================================= */
+const prevSale = window.cloudSaveSale;
+window.cloudSaveSale = async function (sale) {
+  try {
+    if (sale && sale.channel === 'online' && sale.onlineOrderId && !sale._adj) {
+      const s = await getDoc(doc(db, 'clothpos_orders', String(sale.onlineOrderId)));
+      const d = s.exists() ? num(s.data().discount) : 0;
+      sale._adj = 1;
+      if (d > 0) {
+        sale.discount = d; sale.grandTotal = Math.max(0, num(sale.subtotal) - d); sale.paidAmount = sale.grandTotal;
+        sale.couponCode = s.data().coupon || '';
+      }
+      try { window.saveSales(); } catch (e) {}
+    }
+  } catch (e) { console.warn('online discount', e); }
+  return prevSale ? prevSale.apply(this, arguments) : undefined;
+};
+
+/* ---------- entry points: sidebar + phone home ---------- */
+function addButtons() {
+  const menu = $('pb-menu');
+  if (menu && !$('rdwm-menu-btn')) {
+    const b = document.createElement('button');
+    b.id = 'rdwm-menu-btn'; b.type = 'button'; b.className = 'pb-it';
+    b.setAttribute('data-t', 'openWebsiteManager'); b.setAttribute('data-perm', 'settings');
+    b.innerHTML = '<i data-lucide="layout-template"></i><span>Website Manager</span>';
+    const ref = $('rdw-menu-btn');
+    if (ref) ref.insertAdjacentElement('afterend', b); else menu.insertBefore(b, menu.children[1] || null);
+    if (window.lucide) lucide.createIcons();
+  }
+  const tiles = $('m-tiles');
+  if (tiles && !$('rdwm-tile')) {
+    const t = document.createElement('button');
+    t.id = 'rdwm-tile'; t.type = 'button'; t.className = 'tile'; t.setAttribute('data-perm', 'settings');
+    t.innerHTML = '<span class="ti" style="background:#ede9fe;color:#6d28d9"><i data-lucide="layout-template"></i></span><span class="tl">Website</span>';
+    t.addEventListener('click', (ev) => { ev.stopPropagation(); openWin(); });
+    tiles.appendChild(t);
+    if (window.lucide) lucide.createIcons();
+  }
+}
+addButtons();
+setInterval(addButtons, 2000);
+</script>
 </body>
 </html>
